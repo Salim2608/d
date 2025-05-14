@@ -1,0 +1,233 @@
+Date : 2025-05-09 14:15:59
+Directory : e:\MyProjects\darlink
+Total : 127 files,  14187 codes, 779 comments, 1134 blanks, all 16100 lines
+
+Languages
++-----------------+------------+------------+------------+------------+------------+
+| language        | files      | code       | comment    | blank      | total      |
++-----------------+------------+------------+------------+------------+------------+
+| Dart            |         68 |     12,188 |        545 |        751 |     13,484 |
+| C++             |         16 |        553 |        131 |        189 |        873 |
+| XML             |         10 |        472 |         53 |         12 |        537 |
+| CMake           |          8 |        465 |          0 |         92 |        557 |
+| JSON            |          8 |        252 |          0 |          4 |        256 |
+| Gradle          |          3 |         73 |          6 |         16 |         95 |
+| Swift           |          6 |         61 |          7 |         21 |         89 |
+| Markdown        |          2 |         50 |          0 |         29 |         79 |
+| YAML            |          3 |         46 |         22 |         14 |         82 |
+| HTML            |          1 |         19 |         15 |          5 |         39 |
+| Java Properties |          2 |          8 |          0 |          1 |          9 |
++-----------------+------------+------------+------------+------------+------------+
+
+Directories
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                | files      | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                   |        127 |     14,187 |        779 |      1,134 |     16,100 |
+| . (Files)                                                                           |          4 |         93 |         22 |         41 |        156 |
+| android                                                                             |         12 |        149 |         57 |         26 |        232 |
+| android (Files)                                                                     |          3 |         40 |          0 |          8 |         48 |
+| android\app                                                                         |          8 |        104 |         57 |         17 |        178 |
+| android\app (Files)                                                                 |          1 |         36 |          6 |          8 |         50 |
+| android\app\src                                                                     |          7 |         68 |         51 |          9 |        128 |
+| android\app\src\debug                                                               |          1 |          3 |          4 |          1 |          8 |
+| android\app\src\main                                                                |          5 |         62 |         43 |          7 |        112 |
+| android\app\src\main (Files)                                                        |          1 |         36 |         11 |          1 |         48 |
+| android\app\src\main\res                                                            |          4 |         26 |         32 |          6 |         64 |
+| android\app\src\main\res\drawable                                                   |          1 |          4 |          7 |          2 |         13 |
+| android\app\src\main\res\drawable-v21                                               |          1 |          4 |          7 |          2 |         13 |
+| android\app\src\main\res\values                                                     |          1 |          9 |          9 |          1 |         19 |
+| android\app\src\main\res\values-night                                               |          1 |          9 |          9 |          1 |         19 |
+| android\app\src\profile                                                             |          1 |          3 |          4 |          1 |          8 |
+| android\gradle                                                                      |          1 |          5 |          0 |          1 |          6 |
+| android\gradle\wrapper                                                              |          1 |          5 |          0 |          1 |          6 |
+| assets                                                                              |          4 |          4 |          0 |          0 |          4 |
+| assets\lottie                                                                       |          4 |          4 |          0 |          0 |          4 |
+| ios                                                                                 |          8 |        229 |          4 |         13 |        246 |
+| ios\Runner                                                                          |          7 |        222 |          2 |          9 |        233 |
+| ios\Runner (Files)                                                                  |          2 |         13 |          0 |          3 |         16 |
+| ios\RunnerTests                                                                     |          1 |          7 |          2 |          4 |         13 |
+| ios\Runner\Assets.xcassets                                                          |          3 |        148 |          0 |          4 |        152 |
+| ios\Runner\Assets.xcassets\AppIcon.appiconset                                       |          1 |        122 |          0 |          1 |        123 |
+| ios\Runner\Assets.xcassets\LaunchImage.imageset                                     |          2 |         26 |          0 |          3 |         29 |
+| ios\Runner\Base.lproj                                                               |          2 |         61 |          2 |          2 |         65 |
+| lib                                                                                 |         67 |     12,174 |        535 |        744 |     13,453 |
+| lib (Files)                                                                         |          4 |      1,140 |         65 |         50 |      1,255 |
+| lib\constants                                                                       |         13 |        627 |         30 |         92 |        749 |
+| lib\constants (Files)                                                               |          3 |        140 |          1 |         15 |        156 |
+| lib\constants\colors                                                                |         10 |        487 |         29 |         77 |        593 |
+| lib\constants\colors (Files)                                                        |          3 |        123 |         22 |         26 |        171 |
+| lib\constants\colors\template                                                       |          7 |        364 |          7 |         51 |        422 |
+| lib\layout                                                                          |          1 |        128 |          0 |         11 |        139 |
+| lib\models                                                                          |          6 |        148 |          3 |         18 |        169 |
+| lib\modules                                                                         |         28 |      9,132 |        396 |        481 |     10,009 |
+| lib\modules (Files)                                                                 |          1 |         69 |          0 |          5 |         74 |
+| lib\modules\admin                                                                   |          8 |      4,071 |        108 |        159 |      4,338 |
+| lib\modules\authentication                                                          |          2 |        868 |         37 |         91 |        996 |
+| lib\modules\detail                                                                  |          2 |        611 |         11 |         35 |        657 |
+| lib\modules\intro_screens                                                           |          2 |         40 |        189 |          7 |        236 |
+| lib\modules\loading                                                                 |          1 |         14 |          0 |          3 |         17 |
+| lib\modules\navigation                                                              |          5 |      1,047 |         12 |         54 |      1,113 |
+| lib\modules\setting                                                                 |          5 |      1,028 |         12 |         59 |      1,099 |
+| lib\modules\upload                                                                  |          2 |      1,384 |         27 |         68 |      1,479 |
+| lib\shared                                                                          |         15 |        999 |         41 |         92 |      1,132 |
+| lib\shared\cubit                                                                    |          3 |         63 |         19 |         24 |        106 |
+| lib\shared\services                                                                 |          2 |          0 |          0 |          2 |          2 |
+| lib\shared\widgets                                                                  |         10 |        936 |         22 |         66 |      1,024 |
+| lib\shared\widgets (Files)                                                          |          1 |        171 |          6 |          8 |        185 |
+| lib\shared\widgets\card                                                             |          3 |        390 |         11 |         24 |        425 |
+| lib\shared\widgets\chat_widget                                                      |          4 |        327 |          2 |         25 |        354 |
+| lib\shared\widgets\map                                                              |          2 |         48 |          3 |          9 |         60 |
+| linux                                                                               |          9 |        330 |         37 |         92 |        459 |
+| linux (Files)                                                                       |          1 |        104 |          0 |         25 |        129 |
+| linux\flutter                                                                       |          4 |        110 |          9 |         27 |        146 |
+| linux\runner                                                                        |          4 |        116 |         28 |         40 |        184 |
+| macos                                                                               |          6 |        453 |          5 |         17 |        475 |
+| macos\Flutter                                                                       |          1 |         12 |          3 |          4 |         19 |
+| macos\Runner                                                                        |          4 |        434 |          0 |          9 |        443 |
+| macos\Runner (Files)                                                                |          2 |         23 |          0 |          7 |         30 |
+| macos\RunnerTests                                                                   |          1 |          7 |          2 |          4 |         13 |
+| macos\Runner\Assets.xcassets                                                        |          1 |         68 |          0 |          1 |         69 |
+| macos\Runner\Assets.xcassets\AppIcon.appiconset                                     |          1 |         68 |          0 |          1 |         69 |
+| macos\Runner\Base.lproj                                                             |          1 |        343 |          0 |          1 |        344 |
+| test                                                                                |          1 |         14 |         10 |          7 |         31 |
+| web                                                                                 |          2 |         54 |         15 |          6 |         75 |
+| windows                                                                             |         14 |        687 |         94 |        188 |        969 |
+| windows (Files)                                                                     |          1 |         89 |          0 |         20 |        109 |
+| windows\flutter                                                                     |          4 |        136 |          9 |         29 |        174 |
+| windows\runner                                                                      |          9 |        462 |         85 |        139 |        686 |
++-------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-------------------------------------------------------------------------------------+-----------------+------------+------------+------------+------------+
+| filename                                                                            | language        | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------+-----------------+------------+------------+------------+------------+
+| e:\MyProjects\darlink\README.md                                                     | Markdown        |         47 |          0 |         27 |         74 |
+| e:\MyProjects\darlink\analysis_options.yaml                                         | YAML            |          9 |         22 |          3 |         34 |
+| e:\MyProjects\darlink\android\app\build.gradle                                      | Gradle          |         36 |          6 |          8 |         50 |
+| e:\MyProjects\darlink\android\app\src\debug\AndroidManifest.xml                     | XML             |          3 |          4 |          1 |          8 |
+| e:\MyProjects\darlink\android\app\src\main\AndroidManifest.xml                      | XML             |         36 |         11 |          1 |         48 |
+| e:\MyProjects\darlink\android\app\src\main\res\drawable-v21\launch_background.xml   | XML             |          4 |          7 |          2 |         13 |
+| e:\MyProjects\darlink\android\app\src\main\res\drawable\launch_background.xml       | XML             |          4 |          7 |          2 |         13 |
+| e:\MyProjects\darlink\android\app\src\main\res\values-night\styles.xml              | XML             |          9 |          9 |          1 |         19 |
+| e:\MyProjects\darlink\android\app\src\main\res\values\styles.xml                    | XML             |          9 |          9 |          1 |         19 |
+| e:\MyProjects\darlink\android\app\src\profile\AndroidManifest.xml                   | XML             |          3 |          4 |          1 |          8 |
+| e:\MyProjects\darlink\android\build.gradle                                          | Gradle          |         16 |          0 |          3 |         19 |
+| e:\MyProjects\darlink\android\gradle.properties                                     | Java Properties |          3 |          0 |          0 |          3 |
+| e:\MyProjects\darlink\android\gradle\wrapper\gradle-wrapper.properties              | Java Properties |          5 |          0 |          1 |          6 |
+| e:\MyProjects\darlink\android\settings.gradle                                       | Gradle          |         21 |          0 |          5 |         26 |
+| e:\MyProjects\darlink\assets\lottie\birds.json                                      | JSON            |          1 |          0 |          0 |          1 |
+| e:\MyProjects\darlink\assets\lottie\building.json                                   | JSON            |          1 |          0 |          0 |          1 |
+| e:\MyProjects\darlink\assets\lottie\event_search.json                               | JSON            |          1 |          0 |          0 |          1 |
+| e:\MyProjects\darlink\assets\lottie\logo.json                                       | JSON            |          1 |          0 |          0 |          1 |
+| e:\MyProjects\darlink\devtools_options.yaml                                         | YAML            |          3 |          0 |          1 |          4 |
+| e:\MyProjects\darlink\ios\RunnerTests\RunnerTests.swift                             | Swift           |          7 |          2 |          4 |         13 |
+| e:\MyProjects\darlink\ios\Runner\AppDelegate.swift                                  | Swift           |         12 |          0 |          2 |         14 |
+| e:\MyProjects\darlink\ios\Runner\Assets.xcassets\AppIcon.appiconset\Contents.json   | JSON            |        122 |          0 |          1 |        123 |
+| e:\MyProjects\darlink\ios\Runner\Assets.xcassets\LaunchImage.imageset\Contents.json | JSON            |         23 |          0 |          1 |         24 |
+| e:\MyProjects\darlink\ios\Runner\Assets.xcassets\LaunchImage.imageset\README.md     | Markdown        |          3 |          0 |          2 |          5 |
+| e:\MyProjects\darlink\ios\Runner\Base.lproj\LaunchScreen.storyboard                 | XML             |         36 |          1 |          1 |         38 |
+| e:\MyProjects\darlink\ios\Runner\Base.lproj\Main.storyboard                         | XML             |         25 |          1 |          1 |         27 |
+| e:\MyProjects\darlink\ios\Runner\Runner-Bridging-Header.h                           | C++             |          1 |          0 |          1 |          2 |
+| e:\MyProjects\darlink\lib\client_view_page.dart                                     | Dart            |        325 |          8 |         15 |        348 |
+| e:\MyProjects\darlink\lib\constants\app_theme_data.dart                             | Dart            |         96 |          1 |          4 |        101 |
+| e:\MyProjects\darlink\lib\constants\colors\app_color.dart                           | Dart            |         42 |          7 |          9 |         58 |
+| e:\MyProjects\darlink\lib\constants\colors\colors_template.dart                     | Dart            |         27 |          7 |          8 |         42 |
+| e:\MyProjects\darlink\lib\constants\colors\template\blue_template.dart              | Dart            |         52 |          1 |          3 |         56 |
+| e:\MyProjects\darlink\lib\constants\colors\template\green_template.dart             | Dart            |         52 |          1 |          3 |         56 |
+| e:\MyProjects\darlink\lib\constants\colors\template\grey_template.dart              | Dart            |         52 |          1 |         13 |         66 |
+| e:\MyProjects\darlink\lib\constants\colors\template\orange_template.dart            | Dart            |         52 |          1 |         13 |         66 |
+| e:\MyProjects\darlink\lib\constants\colors\template\purple_template.dart            | Dart            |         52 |          1 |         13 |         66 |
+| e:\MyProjects\darlink\lib\constants\colors\template\redBlack_template.dart          | Dart            |         52 |          1 |          3 |         56 |
+| e:\MyProjects\darlink\lib\constants\colors\template\red_template.dart               | Dart            |         52 |          1 |          3 |         56 |
+| e:\MyProjects\darlink\lib\constants\colors\theme_template_manger.dart               | Dart            |         54 |          8 |          9 |         71 |
+| e:\MyProjects\darlink\lib\constants\database_url.dart                               | Dart            |         44 |          0 |         10 |         54 |
+| e:\MyProjects\darlink\lib\constants\fonts.dart                                      | Dart            |          0 |          0 |          1 |          1 |
+| e:\MyProjects\darlink\lib\editable_client_profile_page.dart                         | Dart            |        335 |         50 |         18 |        403 |
+| e:\MyProjects\darlink\lib\filter_bottom.dart                                        | Dart            |        431 |          6 |         11 |        448 |
+| e:\MyProjects\darlink\lib\layout\home_layout.dart                                   | Dart            |        128 |          0 |         11 |        139 |
+| e:\MyProjects\darlink\lib\main.dart                                                 | Dart            |         49 |          1 |          6 |         56 |
+| e:\MyProjects\darlink\lib\models\contact.dart                                       | Dart            |         12 |          0 |          2 |         14 |
+| e:\MyProjects\darlink\lib\models\event.dart                                         | Dart            |         28 |          0 |          4 |         32 |
+| e:\MyProjects\darlink\lib\models\message.dart                                       | Dart            |         19 |          0 |          3 |         22 |
+| e:\MyProjects\darlink\lib\models\payment_method.dart                                | Dart            |         10 |          0 |          2 |         12 |
+| e:\MyProjects\darlink\lib\models\property.dart                                      | Dart            |         26 |          0 |          2 |         28 |
+| e:\MyProjects\darlink\lib\models\user_model.dart                                    | Dart            |         53 |          3 |          5 |         61 |
+| e:\MyProjects\darlink\lib\modules\admin\admin_dashboard.dart                        | Dart            |        408 |         10 |         24 |        442 |
+| e:\MyProjects\darlink\lib\modules\admin\client_profile_screen.dart                  | Dart            |        163 |          3 |          8 |        174 |
+| e:\MyProjects\darlink\lib\modules\admin\editable_client_screen.dart                 | Dart            |        329 |         54 |         18 |        401 |
+| e:\MyProjects\darlink\lib\modules\admin\editable_event_manager_profile_page.dart    | Dart            |        602 |          5 |         23 |        630 |
+| e:\MyProjects\darlink\lib\modules\admin\event_data.dart                             | Dart            |        726 |         10 |         35 |        771 |
+| e:\MyProjects\darlink\lib\modules\admin\events_management_screen.dart               | Dart            |        464 |          7 |         13 |        484 |
+| e:\MyProjects\darlink\lib\modules\admin\properties_page.dart                        | Dart            |        752 |          5 |         17 |        774 |
+| e:\MyProjects\darlink\lib\modules\admin\users_page.dart                             | Dart            |        627 |         14 |         21 |        662 |
+| e:\MyProjects\darlink\lib\modules\authentication\login_screen.dart                  | Dart            |        362 |         18 |         39 |        419 |
+| e:\MyProjects\darlink\lib\modules\authentication\register_screen.dart               | Dart            |        506 |         19 |         52 |        577 |
+| e:\MyProjects\darlink\lib\modules\detail\event_detail_screen.dart                   | Dart            |        214 |         10 |         21 |        245 |
+| e:\MyProjects\darlink\lib\modules\detail\property_detail_screen.dart                | Dart            |        397 |          1 |         14 |        412 |
+| e:\MyProjects\darlink\lib\modules\intro_screens\budget_screen.dart                  | Dart            |          0 |        189 |          1 |        190 |
+| e:\MyProjects\darlink\lib\modules\intro_screens\splash_screen.dart                  | Dart            |         40 |          0 |          6 |         46 |
+| e:\MyProjects\darlink\lib\modules\loading\event_load_screen.dart                    | Dart            |         14 |          0 |          3 |         17 |
+| e:\MyProjects\darlink\lib\modules\navigation\event_screen.dart                      | Dart            |        224 |          2 |         13 |        239 |
+| e:\MyProjects\darlink\lib\modules\navigation\home_screen.dart                       | Dart            |        205 |          4 |         15 |        224 |
+| e:\MyProjects\darlink\lib\modules\navigation\message_screen.dart                    | Dart            |         81 |          0 |          6 |         87 |
+| e:\MyProjects\darlink\lib\modules\navigation\profile_screen.dart                    | Dart            |        284 |          6 |         14 |        304 |
+| e:\MyProjects\darlink\lib\modules\navigation\setting_screen.dart                    | Dart            |        253 |          0 |          6 |        259 |
+| e:\MyProjects\darlink\lib\modules\setting\chat_screen.dart                          | Dart            |        373 |          1 |         25 |        399 |
+| e:\MyProjects\darlink\lib\modules\setting\contact_us_screen.dart                    | Dart            |        131 |          5 |          5 |        141 |
+| e:\MyProjects\darlink\lib\modules\setting\notification_screen.dart                  | Dart            |        167 |          0 |          7 |        174 |
+| e:\MyProjects\darlink\lib\modules\setting\theme.dart                                | Dart            |        187 |          6 |         11 |        204 |
+| e:\MyProjects\darlink\lib\modules\setting\wishlist.dart                             | Dart            |        170 |          0 |         11 |        181 |
+| e:\MyProjects\darlink\lib\modules\transaction_screen.dart                           | Dart            |         69 |          0 |          5 |         74 |
+| e:\MyProjects\darlink\lib\modules\upload\announce_event_screen.dart                 | Dart            |        242 |          4 |         16 |        262 |
+| e:\MyProjects\darlink\lib\modules\upload\property_upload.dart                       | Dart            |      1,142 |         23 |         52 |      1,217 |
+| e:\MyProjects\darlink\lib\shared\cubit\app_cubit.dart                               | Dart            |         52 |         18 |         15 |         85 |
+| e:\MyProjects\darlink\lib\shared\cubit\app_state.dart                               | Dart            |          7 |          1 |          5 |         13 |
+| e:\MyProjects\darlink\lib\shared\cubit\theme_state.dart                             | Dart            |          4 |          0 |          4 |          8 |
+| e:\MyProjects\darlink\lib\shared\services\message_service.dart                      | Dart            |          0 |          0 |          1 |          1 |
+| e:\MyProjects\darlink\lib\shared\services\recording_service.dart                    | Dart            |          0 |          0 |          1 |          1 |
+| e:\MyProjects\darlink\lib\shared\widgets\card\contact_card.dart                     | Dart            |         98 |          0 |          4 |        102 |
+| e:\MyProjects\darlink\lib\shared\widgets\card\event_card.dart                       | Dart            |        140 |          6 |         11 |        157 |
+| e:\MyProjects\darlink\lib\shared\widgets\card\propertyCard.dart                     | Dart            |        152 |          5 |          9 |        166 |
+| e:\MyProjects\darlink\lib\shared\widgets\chat_widget\attachment_option.dart         | Dart            |         65 |          0 |          5 |         70 |
+| e:\MyProjects\darlink\lib\shared\widgets\chat_widget\audio_waveform.dart            | Dart            |         25 |          2 |          8 |         35 |
+| e:\MyProjects\darlink\lib\shared\widgets\chat_widget\message_bubble.dart            | Dart            |        179 |          0 |          8 |        187 |
+| e:\MyProjects\darlink\lib\shared\widgets\chat_widget\recording_ui.dart              | Dart            |         58 |          0 |          4 |         62 |
+| e:\MyProjects\darlink\lib\shared\widgets\filter_bottom.dart                         | Dart            |        171 |          6 |          8 |        185 |
+| e:\MyProjects\darlink\lib\shared\widgets\map\Virtual_tour.dart                      | Dart            |         22 |          2 |          3 |         27 |
+| e:\MyProjects\darlink\lib\shared\widgets\map\map_page.dart                          | Dart            |         26 |          1 |          6 |         33 |
+| e:\MyProjects\darlink\linux\CMakeLists.txt                                          | CMake           |        104 |          0 |         25 |        129 |
+| e:\MyProjects\darlink\linux\flutter\CMakeLists.txt                                  | CMake           |         79 |          0 |         10 |         89 |
+| e:\MyProjects\darlink\linux\flutter\generated_plugin_registrant.cc                  | C++             |          7 |          4 |          5 |         16 |
+| e:\MyProjects\darlink\linux\flutter\generated_plugin_registrant.h                   | C++             |          5 |          5 |          6 |         16 |
+| e:\MyProjects\darlink\linux\flutter\generated_plugins.cmake                         | CMake           |         19 |          0 |          6 |         25 |
+| e:\MyProjects\darlink\linux\runner\CMakeLists.txt                                   | CMake           |         21 |          0 |          6 |         27 |
+| e:\MyProjects\darlink\linux\runner\main.cc                                          | C++             |          5 |          0 |          2 |          7 |
+| e:\MyProjects\darlink\linux\runner\my_application.cc                                | C++             |         83 |         21 |         27 |        131 |
+| e:\MyProjects\darlink\linux\runner\my_application.h                                 | C++             |          7 |          7 |          5 |         19 |
+| e:\MyProjects\darlink\macos\Flutter\GeneratedPluginRegistrant.swift                 | Swift           |         12 |          3 |          4 |         19 |
+| e:\MyProjects\darlink\macos\RunnerTests\RunnerTests.swift                           | Swift           |          7 |          2 |          4 |         13 |
+| e:\MyProjects\darlink\macos\Runner\AppDelegate.swift                                | Swift           |         11 |          0 |          3 |         14 |
+| e:\MyProjects\darlink\macos\Runner\Assets.xcassets\AppIcon.appiconset\Contents.json | JSON            |         68 |          0 |          1 |         69 |
+| e:\MyProjects\darlink\macos\Runner\Base.lproj\MainMenu.xib                          | XML             |        343 |          0 |          1 |        344 |
+| e:\MyProjects\darlink\macos\Runner\MainFlutterWindow.swift                          | Swift           |         12 |          0 |          4 |         16 |
+| e:\MyProjects\darlink\pubspec.yaml                                                  | YAML            |         34 |          0 |         10 |         44 |
+| e:\MyProjects\darlink\test\widget_test.dart                                         | Dart            |         14 |         10 |          7 |         31 |
+| e:\MyProjects\darlink\web\index.html                                                | HTML            |         19 |         15 |          5 |         39 |
+| e:\MyProjects\darlink\web\manifest.json                                             | JSON            |         35 |          0 |          1 |         36 |
+| e:\MyProjects\darlink\windows\CMakeLists.txt                                        | CMake           |         89 |          0 |         20 |        109 |
+| e:\MyProjects\darlink\windows\flutter\CMakeLists.txt                                | CMake           |         98 |          0 |         12 |        110 |
+| e:\MyProjects\darlink\windows\flutter\generated_plugin_registrant.cc                | C++             |         12 |          4 |          5 |         21 |
+| e:\MyProjects\darlink\windows\flutter\generated_plugin_registrant.h                 | C++             |          5 |          5 |          6 |         16 |
+| e:\MyProjects\darlink\windows\flutter\generated_plugins.cmake                       | CMake           |         21 |          0 |          6 |         27 |
+| e:\MyProjects\darlink\windows\runner\CMakeLists.txt                                 | CMake           |         34 |          0 |          7 |         41 |
+| e:\MyProjects\darlink\windows\runner\flutter_window.cpp                             | C++             |         49 |          7 |         16 |         72 |
+| e:\MyProjects\darlink\windows\runner\flutter_window.h                               | C++             |         20 |          5 |          9 |         34 |
+| e:\MyProjects\darlink\windows\runner\main.cpp                                       | C++             |         30 |          4 |         10 |         44 |
+| e:\MyProjects\darlink\windows\runner\resource.h                                     | C++             |          9 |          6 |          2 |         17 |
+| e:\MyProjects\darlink\windows\runner\utils.cpp                                      | C++             |         54 |          2 |         10 |         66 |
+| e:\MyProjects\darlink\windows\runner\utils.h                                        | C++             |          8 |          6 |          6 |         20 |
+| e:\MyProjects\darlink\windows\runner\win32_window.cpp                               | C++             |        210 |         24 |         55 |        289 |
+| e:\MyProjects\darlink\windows\runner\win32_window.h                                 | C++             |         48 |         31 |         24 |        103 |
+| Total                                                                               |                 |     14,187 |        779 |      1,134 |     16,100 |
++-------------------------------------------------------------------------------------+-----------------+------------+------------+------------+------------+
