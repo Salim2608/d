@@ -1,10 +1,11 @@
 import 'package:darlink/client_view_page.dart';
 import 'package:darlink/editable_client_profile_page.dart';
-
-import 'package:darlink/modules/admin/events_management_screen.dart';
+import 'package:darlink/modules/admin/users_page.dart';
+import 'package:darlink/modules/admin/properties_page.dart';
 import 'package:flutter/material.dart';
 
-// ... (rest of the imports and existing code)
+import 'event_data.dart';
+import 'events_management_screen.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({Key? key}) : super(key: key);
@@ -18,7 +19,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   final List<_AdminOption> options = [
     _AdminOption(icon: Icons.people_alt, label: 'Manage Users'),
-    _AdminOption(icon: Icons.event, label: 'Manage Events'), // Updated icon
+    _AdminOption(icon: Icons.event, label: 'Manage Events'),
     _AdminOption(icon: Icons.house_sharp, label: 'Manage Properties'),
   ];
 
@@ -34,9 +35,35 @@ class _AdminDashboardState extends State<AdminDashboard> {
     });
   }
 
+  void _navigateToPage(int index) {
+    switch (index) {
+      case 0:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => UsersPage()),
+        );
+        break;
+      case 1:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => EventsPage()),
+        );
+        break;
+      case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => PropertiesPage()),
+        );
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final option = options[currentIndex];
+    final screenWidth = MediaQuery.of(context).size.width;
+    final availableWidth = screenWidth - 32; // Account for horizontal padding
+    final cardWidth = (availableWidth * 0.6).clamp(200, 300); // Responsive width
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
@@ -44,7 +71,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // Gradient AppBar with logo (Keep as is)
               Container(
                 height: 140,
                 decoration: const BoxDecoration(
@@ -65,7 +91,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   children: [
                     Center(
                       child: Image.asset(
-                        'assets/images/imagenew.png', // Assuming this is the correct logo path
+                        'assets/icon/logo.png',
                         height: 80,
                         fit: BoxFit.contain,
                       ),
@@ -86,6 +112,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ],
                 ),
               ),
+
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
@@ -97,7 +124,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       backgroundColor: Colors.white24,
                       child: ClipOval(
                         child: Image.asset(
-                          'assets/images/black.png', // Assuming admin avatar path
+                          'assets/images/black.png',
                           width: 140,
                           height: 140,
                           fit: BoxFit.cover,
@@ -129,35 +156,45 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 50),
-                    // Carousel with arrows (Keep as is)
+
+                    // Fixed Carousel Section
                     SizedBox(
                       height: 220,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            iconSize: 42,
-                            color: Colors.white,
-                            icon: const Icon(Icons.arrow_left),
-                            onPressed: _previous,
+                      child: Center(
+                        child: Container(
+                          constraints: BoxConstraints(maxWidth: availableWidth),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                iconSize: 42,
+                                color: Colors.white,
+                                icon: const Icon(Icons.arrow_left),
+                                onPressed: _previous,
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: GestureDetector(
+                                  onTap: () => _navigateToPage(currentIndex),
+                                  child: _OptionCard(option: option),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                iconSize: 42,
+                                color: Colors.white,
+                                icon: const Icon(Icons.arrow_right),
+                                onPressed: _next,
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          _OptionCard(
-                              option:
-                                  option), // Assumes _OptionCard is defined below
-                          const SizedBox(width: 8),
-                          IconButton(
-                            iconSize: 42,
-                            color: Colors.white,
-                            icon: const Icon(Icons.arrow_right),
-                            onPressed: _next,
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 40),
 
-                    // --- Updated Profile Navigation Buttons Section ---
+                    // Rest of the content
+                    const SizedBox(height: 40),
                     const Text(
                       'View Profiles',
                       style: TextStyle(
@@ -168,7 +205,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // Use a Column for two rows of buttons
                     Column(
                       children: [
                         Row(
@@ -176,39 +212,37 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           children: [
                             _buildProfileButton(
                               context,
-                              icon: Icons.person_outline, // Client icon
+                              icon: Icons.person_outline,
                               label: 'Client Profile\n(View)',
                               onTap: () {
                                 Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) =>
-                                            ClientViewPage()));
+                                        builder: (context) => ClientViewPage()));
                               },
                             ),
                             _buildProfileButton(
                               context,
-                              icon: Icons.edit_note, // Client edit icon
+                              icon: Icons.edit_note,
                               label: 'Client Profile\n(Edit)',
                               onTap: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) =>
-                                          const EditableClientProfilePage()),
+                                      const EditableClientProfilePage()),
                                 );
                               },
                             ),
                           ],
                         ),
-                        const SizedBox(height: 15), // Space between rows
+                        const SizedBox(height: 15),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             _buildProfileButton(
                               context,
-                              icon: Icons
-                                  .event_seat_outlined, // Event manager icon
+                              icon: Icons.event_seat_outlined,
                               label: 'Event Mgr\nProfile (View)',
                               onTap: () {
                                 Navigator.push(
@@ -223,8 +257,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         ),
                       ],
                     ),
-                    // --- End Updated Buttons Section ---
-
                     const SizedBox(height: 30),
                   ],
                 ),
@@ -236,13 +268,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  // Helper widget for the profile buttons (Keep as is or adjust styling)
   Widget _buildProfileButton(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
+      BuildContext context, {
+        required IconData icon,
+        required String label,
+        required VoidCallback onTap,
+      }) {
     return ElevatedButton.icon(
       onPressed: onTap,
       icon: Icon(icon, size: 20),
@@ -250,25 +281,22 @@ class _AdminDashboardState extends State<AdminDashboard> {
       style: ElevatedButton.styleFrom(
         foregroundColor: Colors.white,
         backgroundColor: const Color(0xFF1E293B),
-        padding: const EdgeInsets.symmetric(
-            horizontal: 12, vertical: 12), // Adjusted padding
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         textStyle: const TextStyle(
             fontSize: 13,
             fontFamily: 'Poppins',
             fontWeight: FontWeight.w500,
-            height: 1.2), // Adjusted font size and line height
+            height: 1.2),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
         elevation: 3,
-        minimumSize: Size(MediaQuery.of(context).size.width * 0.4,
-            60), // Adjusted width and height slightly
+        minimumSize: Size(MediaQuery.of(context).size.width * 0.4, 60),
       ),
     );
   }
 }
 
-// _AdminOption class (Keep as is)
 class _AdminOption {
   final IconData icon;
   final String label;
@@ -276,7 +304,6 @@ class _AdminOption {
   _AdminOption({required this.icon, required this.label});
 }
 
-// _OptionCard class and its State (Keep as is)
 class _OptionCard extends StatefulWidget {
   final _AdminOption option;
   const _OptionCard({Key? key, required this.option}) : super(key: key);
@@ -342,83 +369,57 @@ class _OptionCardState extends State<_OptionCard>
     return MouseRegion(
       onEnter: (_) => _handleHover(true),
       onExit: (_) => _handleHover(false),
-      child: GestureDetector(
-        onTap: () {
-          // Use named routes defined in main.dart
-          switch (widget.option.label) {
-            case 'Manage Users':
-              Navigator.pushNamed(context, '/manageUsers');
-              break;
-            case 'Manage Events':
-              Navigator.pushNamed(context, '/manageEvents');
-              break;
-            case 'Manage Properties':
-              Navigator.pushNamed(context, '/manageProperties');
-              break;
-          }
-        },
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) {
-            return Transform.translate(
-              offset: Offset(0, -_elevationAnim.value * 0.5),
-              child: Container(
-                width: 200,
-                height: 200,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
-                  gradient: LinearGradient(
-                    colors: [
-                      Color.lerp(const Color(0xFF1E293B),
-                          const Color(0xFF6A11CB), _gradientAnim.value)!,
-                      Color.lerp(const Color(0xFF1E293B),
-                          const Color(0xFF2575FC), _gradientAnim.value)!,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          gradient: LinearGradient(
+            colors: [
+              Color.lerp(const Color(0xFF1E293B),
+                  const Color(0xFF6A11CB), _gradientAnim.value)!,
+              Color.lerp(const Color(0xFF1E293B),
+                  const Color(0xFF2575FC), _gradientAnim.value)!,
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(_controller.value * 0.2),
+              blurRadius: 6 + _controller.value * 14,
+              spreadRadius: _controller.value,
+              offset: Offset(0, 3 + _controller.value * 3),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Transform.translate(
+              offset: Offset(0, _iconPositionAnim.value),
+              child: Icon(
+                widget.option.icon,
+                color: Colors.white,
+                size: _iconSizeAnim.value,
+              ),
+            ),
+            Opacity(
+              opacity: _textOpacityAnim.value,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: Text(
+                  widget.option.label,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Poppins',
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(_controller.value * 0.2),
-                      blurRadius: 6 + _controller.value * 14,
-                      spreadRadius: _controller.value,
-                      offset: Offset(0, 3 + _controller.value * 3),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Transform.translate(
-                      offset: Offset(0, _iconPositionAnim.value),
-                      child: Icon(
-                        widget.option.icon,
-                        color: Colors.white,
-                        size: _iconSizeAnim.value,
-                      ),
-                    ),
-                    Opacity(
-                      opacity: _textOpacityAnim.value,
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 16),
-                        child: Text(
-                          widget.option.label,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );

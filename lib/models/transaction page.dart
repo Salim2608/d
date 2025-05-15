@@ -1,4 +1,5 @@
 import 'package:darlink/constants/Database_url.dart';
+import 'package:darlink/layout/home_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import '../modules/authentication/login_screen.dart' as lg;
@@ -186,7 +187,7 @@ class _TransactionPageState extends State<TransactionPage> {
         onPressed: () {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => HomeScreen()),
+            MaterialPageRoute(builder: (context) => HomeLayout()),
                 (Route<dynamic> route) => false,
           );
         },

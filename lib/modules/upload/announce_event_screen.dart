@@ -10,14 +10,14 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../constants/Database_url.dart' as mg;
 import '../../constants/colors/app_color.dart';
 
-class AnnounceEventScreen extends StatefulWidget {
-  const AnnounceEventScreen({super.key});
+class AnnouceEventScreen extends StatefulWidget {
+  const AnnouceEventScreen({super.key});
 
   @override
-  _AnnounceEventScreenState createState() => _AnnounceEventScreenState();
+  _AnnouceEventScreenState createState() => _AnnouceEventScreenState();
 }
 
-class _AnnounceEventScreenState extends State<AnnounceEventScreen> {
+class _AnnouceEventScreenState extends State<AnnouceEventScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _eventNameController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
@@ -30,9 +30,6 @@ class _AnnounceEventScreenState extends State<AnnounceEventScreen> {
   TimeOfDay? _endTime;
   File? _image;
   LatLng? _selectedLocation;
-  bool _scheduleExpanded = true;
-  bool _locationExpanded = true;
-  bool _detailsExpanded = false;
 
   GoogleMapController? _mapController;
   final CameraPosition _initialPosition = CameraPosition(
@@ -54,10 +51,12 @@ class _AnnounceEventScreenState extends State<AnnounceEventScreen> {
       setState(() {
         if (isStartDate) {
           _startDate = date;
+          // If end date is before start date or not set, update it to be same as start date
           if (_endDate == null || _endDate!.isBefore(date)) {
             _endDate = date.add(Duration(days: 1));
           }
         } else {
+          // Ensure end date is not before start date
           if (_startDate != null && date.isBefore(_startDate!)) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('End date cannot be before start date')),
@@ -80,11 +79,13 @@ class _AnnounceEventScreenState extends State<AnnounceEventScreen> {
       setState(() {
         if (isStartTime) {
           _startTime = time;
+          // If end time is not set, set it to one hour after start time
           if (_endTime == null) {
             int newHour = (time.hour + 1) % 24;
             _endTime = TimeOfDay(hour: newHour, minute: time.minute);
           }
         } else {
+          // Validate that end time is after start time if on same day
           if (_startTime != null &&
               _startDate != null &&
               _endDate != null &&
@@ -97,7 +98,7 @@ class _AnnounceEventScreenState extends State<AnnounceEventScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                     content:
-                        Text('End time must be after start time on same day')),
+                    Text('End time must be after start time on same day')),
               );
               return;
             }
@@ -173,655 +174,652 @@ class _AnnounceEventScreenState extends State<AnnounceEventScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
+    final isDark = theme.brightness == Brightness.dark;
     final dateFormat = DateFormat.yMMMd();
 
     return Scaffold(
-      backgroundColor: colorScheme.background,
       appBar: AppBar(
-        backgroundColor: colorScheme.primary,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          color: colorScheme.onPrimary,
-          onPressed: () => Navigator.pop(context),
-        ),
         title: Text(
           "Announce an Event",
-          style: textTheme.titleLarge?.copyWith(
-            color: colorScheme.onPrimary,
-            fontWeight: FontWeight.bold,
-          ),
+          style: theme.appBarTheme.titleTextStyle,
         ),
+        backgroundColor: theme.appBarTheme.backgroundColor,
+        iconTheme: theme.appBarTheme.iconTheme,
+        elevation: theme.appBarTheme.elevation,
       ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (scrollNotification) {
           if (_isMapInteracting) return true;
           return false;
         },
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Main Event Card
-                _buildEventMainCard(theme, colorScheme, textTheme),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Event Name
+                  _buildTextField(_eventNameController, "Event Name", theme),
 
-                // Schedule Section
-                _buildExpandableSection(
-                  theme,
-                  colorScheme,
-                  textTheme,
-                  'Event Schedule',
-                  Icons.event,
-                  _scheduleExpanded,
-                  () => setState(() => _scheduleExpanded = !_scheduleExpanded),
-                  _buildScheduleContent(
-                      theme, colorScheme, textTheme, dateFormat),
-                ),
+                  // Address Field
+                  _buildTextField(
+                      _addressController, "Address Location", theme),
 
-                // Location Section
-                _buildExpandableSection(
-                  theme,
-                  colorScheme,
-                  textTheme,
-                  'Event Location',
-                  Icons.location_on,
-                  _locationExpanded,
-                  () => setState(() => _locationExpanded = !_locationExpanded),
-                  _buildLocationContent(theme, colorScheme, textTheme),
-                ),
-
-                // Additional Details Section
-                _buildExpandableSection(
-                  theme,
-                  colorScheme,
-                  textTheme,
-                  'Additional Details',
-                  Icons.info_outline,
-                  _detailsExpanded,
-                  () => setState(() => _detailsExpanded = !_detailsExpanded),
-                  _buildDetailsContent(theme, colorScheme, textTheme),
-                ),
-
-                // Submit Button
-                _buildSubmitButton(theme, colorScheme, textTheme),
-                SizedBox(height: 24),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEventMainCard(
-      ThemeData theme, ColorScheme colorScheme, TextTheme textTheme) {
-    return Card(
-      margin: EdgeInsets.all(16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Event Image Section
-          InkWell(
-            onTap: _pickImage,
-            child: ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-              child: _image != null
-                  ? Stack(
-                      alignment: Alignment.topRight,
-                      children: [
-                        AspectRatio(
-                          aspectRatio: 16 / 9,
-                          child: Image.file(
-                            _image!,
-                            fit: BoxFit.cover,
+                  // Description with more space
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: TextFormField(
+                      controller: _descriptionController,
+                      style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+                      maxLines: 5, // Increased space for description
+                      decoration: InputDecoration(
+                        labelText: "Description",
+                        alignLabelWithHint:
+                        true, // Aligns the label with the first line
+                        labelStyle: TextStyle(
+                          color: isDark
+                              ? AppColors.textOnDark
+                              : AppColors.textPrimary,
+                        ),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? AppColors.dividerDark
+                                : AppColors.divider,
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: CircleAvatar(
-                            backgroundColor: Colors.red,
-                            child: IconButton(
-                              icon: Icon(Icons.delete, color: Colors.white),
-                              onPressed: _deleteImage,
-                            ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? AppColors.dividerDark
+                                : AppColors.divider,
                           ),
-                        ),
-                      ],
-                    )
-                  : Container(
-                      height: 200,
-                      color: colorScheme.surfaceVariant,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.add_photo_alternate,
-                              size: 48,
-                              color: colorScheme.primary,
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              "Add Event Image",
-                              style: textTheme.titleMedium?.copyWith(
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                          ],
                         ),
                       ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a description';
+                        }
+                        return null;
+                      },
                     ),
-            ),
-          ),
-
-          // Event Title and Price
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Event Title Field
-                TextFormField(
-                  controller: _eventNameController,
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
                   ),
-                  decoration: InputDecoration(
-                    hintText: "Event Name",
-                    hintStyle: textTheme.titleLarge?.copyWith(
-                      color: colorScheme.onSurface.withOpacity(0.5),
+
+                  SizedBox(height: 15),
+
+                  // Date and Time section
+                  Text(
+                    "Event Schedule",
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter event name';
-                    }
-                    return null;
-                  },
-                ),
+                  SizedBox(height: 10),
 
-                // Address Field with Icon
-                Row(
-                  children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 16,
-                      color: colorScheme.onSurface.withOpacity(0.6),
-                    ),
-                    SizedBox(width: 4),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _addressController,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurface.withOpacity(0.8),
-                        ),
-                        decoration: InputDecoration(
-                          hintText: "Address Location",
-                          hintStyle: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurface.withOpacity(0.5),
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter address';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-
-                // Ticket Price Field
-                SizedBox(height: 8),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                  // Start Date and Time Row
+                  Row(
                     children: [
-                      Icon(Icons.attach_money,
-                          size: 16, color: colorScheme.primary),
-                      SizedBox(width: 4),
+                      // Start Date
                       Expanded(
-                        child: TextFormField(
-                          controller: _ticketPriceController,
-                          keyboardType:
-                              TextInputType.numberWithOptions(decimal: true),
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.primary,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: "Ticket Price",
-                            hintStyle: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.primary.withOpacity(0.5),
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.zero,
-                            isDense: true,
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter ticket price';
-                            }
-                            if (double.tryParse(value) == null) {
-                              return 'Please enter a valid number';
-                            }
-                            return null;
-                          },
+                        child: _buildDateField(
+                          "Start Date",
+                          _startDate == null
+                              ? "Select Date"
+                              : dateFormat.format(_startDate!),
+                              () => _pickDate(true),
+                          theme,
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      // Start Time
+                      Expanded(
+                        child: _buildTimeField(
+                          "Start Time",
+                          _formatTimeOfDay(_startTime),
+                              () => _pickTime(true),
+                          theme,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildExpandableSection(
-    ThemeData theme,
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-    String title,
-    IconData icon,
-    bool isExpanded,
-    VoidCallback onTap,
-    Widget content,
-  ) {
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          ListTile(
-            leading: Icon(icon, color: colorScheme.primary),
-            title: Text(
-              title,
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            trailing: Icon(
-              isExpanded ? Icons.expand_less : Icons.expand_more,
-              color: colorScheme.onSurface.withOpacity(0.6),
-            ),
-            onTap: onTap,
-          ),
-          if (isExpanded) content,
-        ],
-      ),
-    );
-  }
+                  SizedBox(height: 10),
 
-  Widget _buildScheduleContent(
-    ThemeData theme,
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-    DateFormat dateFormat,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: _buildDateTimeSelector(
-                  theme,
-                  colorScheme,
-                  textTheme,
-                  "Start Date",
-                  _startDate == null
-                      ? "Select Date"
-                      : dateFormat.format(_startDate!),
-                  Icons.calendar_today,
-                  () => _pickDate(true),
-                ),
-              ),
-              SizedBox(width: 8),
-              Expanded(
-                child: _buildDateTimeSelector(
-                  theme,
-                  colorScheme,
-                  textTheme,
-                  "Start Time",
-                  _formatTimeOfDay(_startTime),
-                  Icons.access_time,
-                  () => _pickTime(true),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildDateTimeSelector(
-                  theme,
-                  colorScheme,
-                  textTheme,
-                  "End Date",
-                  _endDate == null
-                      ? "Select Date"
-                      : dateFormat.format(_endDate!),
-                  Icons.calendar_today,
-                  () => _pickDate(false),
-                ),
-              ),
-              SizedBox(width: 8),
-              Expanded(
-                child: _buildDateTimeSelector(
-                  theme,
-                  colorScheme,
-                  textTheme,
-                  "End Time",
-                  _formatTimeOfDay(_endTime),
-                  Icons.access_time,
-                  () => _pickTime(false),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDateTimeSelector(
-    ThemeData theme,
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-    String label,
-    String value,
-    IconData icon,
-    VoidCallback onTap,
-  ) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          border: Border.all(color: colorScheme.outline.withOpacity(0.5)),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.6),
-              ),
-            ),
-            SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(icon, size: 16, color: colorScheme.primary),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    value,
-                    style: textTheme.bodyMedium,
+                  // End Date and Time Row
+                  Row(
+                    children: [
+                      // End Date
+                      Expanded(
+                        child: _buildDateField(
+                          "End Date",
+                          _endDate == null
+                              ? "Select Date"
+                              : dateFormat.format(_endDate!),
+                              () => _pickDate(false),
+                          theme,
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      // End Time
+                      Expanded(
+                        child: _buildTimeField(
+                          "End Time",
+                          _formatTimeOfDay(_endTime),
+                              () => _pickTime(false),
+                          theme,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildLocationContent(
-    ThemeData theme,
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              height: 200,
-              child: Listener(
-                onPointerDown: (_) => setState(() => _isMapInteracting = true),
-                onPointerUp: (_) => setState(() => _isMapInteracting = false),
-                onPointerCancel: (_) =>
-                    setState(() => _isMapInteracting = false),
-                child: GoogleMap(
-                  onMapCreated: _onMapCreated,
-                  initialCameraPosition: _initialPosition,
-                  onTap: _onMapTap,
-                  markers: _selectedLocation != null
-                      ? {
-                          Marker(
-                            markerId: MarkerId('selectedLocation'),
-                            position: _selectedLocation!,
+                  SizedBox(height: 20),
+                  _buildTextField(
+                      _celebrityController, "Celebrity in Attendance", theme),
+                  SizedBox(height: 15),
+
+                  // Image Upload Section - Enhanced
+                  Card(
+                    elevation: 3,
+                    margin: EdgeInsets.symmetric(vertical: 10),
+                    color: isDark
+                        ? AppColors.cardDarkBackground
+                        : AppColors.cardBackground,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Event Image",
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        }
-                      : {},
-                  myLocationEnabled: true,
-                  myLocationButtonEnabled: true,
-                  gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-                    Factory<OneSequenceGestureRecognizer>(
-                      () => EagerGestureRecognizer(),
+                          SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              ElevatedButton.icon(
+                                icon: Icon(Icons.image,
+                                    color: AppColors.textOnDark),
+                                label: Text(
+                                  _image == null
+                                      ? "Upload Image"
+                                      : "Change Image",
+                                  style: TextStyle(color: AppColors.textOnDark),
+                                ),
+                                onPressed: _pickImage,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 12),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (_image != null) ...[
+                            SizedBox(height: 15),
+                            Stack(
+                              alignment: Alignment.topRight,
+                              children: [
+                                Container(
+                                  height:
+                                  200, // Increased height for image preview
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: isDark
+                                          ? AppColors.dividerDark
+                                          : AppColors.divider,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.file(
+                                      _image!,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: IconButton(
+                                    icon:
+                                    Icon(Icons.delete, color: Colors.white),
+                                    onPressed: _deleteImage,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ] else ...[
+                            SizedBox(height: 15),
+                            Container(
+                              height: 150,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? Colors.grey[800]
+                                    : Colors.grey[200],
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppColors.dividerDark
+                                      : AppColors.divider,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.add_photo_alternate,
+                                      size: 50,
+                                      color: isDark
+                                          ? Colors.grey[400]
+                                          : Colors.grey[600],
+                                    ),
+                                    SizedBox(height: 10),
+                                    Text(
+                                      "No image selected",
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.grey[400]
+                                            : Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
-                  },
-                ),
+                  ),
+
+                  // Ticket Price with Dollar Sign
+                  SizedBox(height: 15),
+                  TextFormField(
+                    controller: _ticketPriceController,
+                    keyboardType:
+                    TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(
+                      labelText: "Ticket Price",
+                      labelStyle: TextStyle(
+                        color: isDark
+                            ? AppColors.textOnDark
+                            : AppColors.textPrimary,
+                      ),
+                      prefixText: "\$ ",
+                      prefixStyle: TextStyle(
+                        color: isDark
+                            ? AppColors.textOnDark
+                            : AppColors.textPrimary,
+                      ),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: isDark
+                              ? AppColors.dividerDark
+                              : AppColors.divider,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: isDark
+                              ? AppColors.dividerDark
+                              : AppColors.divider,
+                        ),
+                      ),
+                    ),
+                    style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter ticket price';
+                      }
+                      if (double.tryParse(value) == null) {
+                        return 'Please enter a valid number';
+                      }
+                      return null;
+                    },
+                  ),
+
+                  SizedBox(height: 20),
+
+                  // Google Maps Section
+                  Card(
+                    elevation: 4,
+                    color: isDark
+                        ? AppColors.cardDarkBackground
+                        : AppColors.cardBackground,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Select Event Location",
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            "Tap on the map to select the exact location",
+                            style: TextStyle(
+                              color:
+                              isDark ? Colors.grey[400] : Colors.grey[700],
+                              fontSize: 12,
+                            ),
+                          ),
+                          SizedBox(height: 12),
+                          SizedBox(
+                            height: 250, // Increased map height
+                            child: Listener(
+                              onPointerDown: (_) =>
+                                  setState(() => _isMapInteracting = true),
+                              onPointerUp: (_) =>
+                                  setState(() => _isMapInteracting = false),
+                              onPointerCancel: (_) =>
+                                  setState(() => _isMapInteracting = false),
+                              child: GoogleMap(
+                                onMapCreated: _onMapCreated,
+                                initialCameraPosition: _initialPosition,
+                                onTap: _onMapTap,
+                                markers: _selectedLocation != null
+                                    ? {
+                                  Marker(
+                                    markerId:
+                                    MarkerId('selectedLocation'),
+                                    position: _selectedLocation!,
+                                  ),
+                                }
+                                    : {},
+                                myLocationEnabled: true,
+                                myLocationButtonEnabled: true,
+                                gestureRecognizers: <Factory<
+                                    OneSequenceGestureRecognizer>>{
+                                  Factory<OneSequenceGestureRecognizer>(
+                                        () => EagerGestureRecognizer(),
+                                  ),
+                                },
+                              ),
+                            ),
+                          ),
+                          if (_selectedLocation != null) ...[
+                            SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Icon(Icons.location_on,
+                                    color: AppColors.primary, size: 16),
+                                SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    "Location selected: ${_selectedLocation!.latitude.toStringAsFixed(5)}, ${_selectedLocation!.longitude.toStringAsFixed(5)}",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isDark
+                                          ? Colors.grey[300]
+                                          : Colors.grey[700],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  SizedBox(height: 30),
+
+                  // Submit Button
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (_formKey.currentState!.validate()) {
+                          if (_startDate == null || _endDate == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(
+                                      'Please select both start and end dates')),
+                            );
+                            return;
+                          }
+
+                          if (_startTime == null || _endTime == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(
+                                      'Please select both start and end times')),
+                            );
+                            return;
+                          }
+
+                          if (_selectedLocation == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text(
+                                      'Please select a location on the map')),
+                            );
+                            return;
+                          }
+
+                          // Combine date and time for start and end
+                          final startDateTime = DateTime(
+                            _startDate!.year,
+                            _startDate!.month,
+                            _startDate!.day,
+                            _startTime!.hour,
+                            _startTime!.minute,
+                          );
+
+                          final endDateTime = DateTime(
+                            _endDate!.year,
+                            _endDate!.month,
+                            _endDate!.day,
+                            _endTime!.hour,
+                            _endTime!.minute,
+                          );
+
+                          var db = await mongo.Db.create(mg.mongo_url);
+                          await db.open();
+                          var collection = db.collection("Event");
+                          await collection.insert({
+                            'Event Name': _eventNameController.text,
+                            'address': _addressController.text,
+                            'startDateTime': startDateTime,
+                            'endDateTime': endDateTime,
+                            'price': _ticketPriceController.text,
+                            'location': {
+                              'latitude': _selectedLocation!.latitude,
+                              'longitude': _selectedLocation!.longitude,
+                            },
+                            'description': _descriptionController.text,
+                            'image': _image != null ? _image!.path : null,
+                            'celeb': _celebrityController.text,
+                          });
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text('Event announced successfully!')),
+                          );
+
+                          // Optional: Clear the form after submission
+                          _formKey.currentState?.reset();
+                          setState(() {
+                            _image = null;
+                            _startDate = null;
+                            _endDate = null;
+                            _startTime = null;
+                            _endTime = null;
+                            _selectedLocation = null;
+                          });
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding:
+                        EdgeInsets.symmetric(horizontal: 60, vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        "Announce Event",
+                        style: TextStyle(
+                          color: AppColors.textOnDark,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-          if (_selectedLocation != null) ...[
-            SizedBox(height: 8),
-            Row(
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+      TextEditingController controller, String label, ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(
+            color: isDark ? AppColors.textOnDark : AppColors.textPrimary,
+          ),
+          border: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: isDark ? AppColors.dividerDark : AppColors.divider,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: isDark ? AppColors.dividerDark : AppColors.divider,
+            ),
+          ),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter $label';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  Widget _buildDateField(
+      String label, String value, VoidCallback onTap, ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: isDark ? AppColors.textOnDark : AppColors.textPrimary,
+            fontSize: 12,
+          ),
+        ),
+        SizedBox(height: 4),
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: isDark ? AppColors.dividerDark : AppColors.divider,
+              ),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(Icons.check_circle, color: Colors.green, size: 16),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    "Location selected",
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: Colors.green,
-                    ),
+                Text(
+                  value,
+                  style: TextStyle(
+                    color:
+                    isDark ? AppColors.textOnDark : AppColors.textPrimary,
                   ),
+                ),
+                Icon(
+                  Icons.calendar_today,
+                  size: 20,
+                  color: isDark ? AppColors.textOnDark : AppColors.textPrimary,
                 ),
               ],
             ),
-          ] else ...[
-            SizedBox(height: 8),
-            Text(
-              "Tap on the map to select the event location",
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.6),
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
-        ],
-      ),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildDetailsContent(
-    ThemeData theme,
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Description Field
-          TextFormField(
-            controller: _descriptionController,
-            maxLines: 5,
-            decoration: InputDecoration(
-              labelText: "Event Description",
-              alignLabelWithHint: true,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              contentPadding: EdgeInsets.all(16),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter a description';
-              }
-              return null;
-            },
-          ),
-          SizedBox(height: 16),
+  Widget _buildTimeField(
+      String label, String value, VoidCallback onTap, ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
 
-          // Celebrity Field
-          TextFormField(
-            controller: _celebrityController,
-            decoration: InputDecoration(
-              labelText: "Celebrity in Attendance",
-              prefixIcon: Icon(Icons.person, color: colorScheme.primary),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSubmitButton(
-    ThemeData theme,
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: ElevatedButton(
-        onPressed: () async {
-          if (_formKey.currentState!.validate()) {
-            // Validate required fields
-            if (_startDate == null || _endDate == null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: Text('Please select both start and end dates')),
-              );
-              return;
-            }
-
-            if (_startTime == null || _endTime == null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: Text('Please select both start and end times')),
-              );
-              return;
-            }
-
-            if (_selectedLocation == null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Please select a location on the map')),
-              );
-              return;
-            }
-
-            // Combine date and time for start and end
-            final startDateTime = DateTime(
-              _startDate!.year,
-              _startDate!.month,
-              _startDate!.day,
-              _startTime!.hour,
-              _startTime!.minute,
-            );
-
-            final endDateTime = DateTime(
-              _endDate!.year,
-              _endDate!.month,
-              _endDate!.day,
-              _endTime!.hour,
-              _endTime!.minute,
-            );
-
-            var db = await mongo.Db.create(mg.mongo_url);
-            await db.open();
-            var collection = db.collection("Event");
-            await collection.insert({
-              'Event Name': _eventNameController.text,
-              'address': _addressController.text,
-              'startDateTime': startDateTime,
-              'endDateTime': endDateTime,
-              'price': _ticketPriceController.text,
-              'location': {
-                'latitude': _selectedLocation!.latitude,
-                'longitude': _selectedLocation!.longitude,
-              },
-              'description': _descriptionController.text,
-              'image': _image != null ? _image!.path : null,
-              'celeb': _celebrityController.text,
-            });
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Event announced successfully!'),
-                backgroundColor: Colors.green,
-              ),
-            );
-
-            // Optional: Clear the form after submission
-            _formKey.currentState?.reset();
-            setState(() {
-              _image = null;
-              _startDate = null;
-              _endDate = null;
-              _startTime = null;
-              _endTime = null;
-              _selectedLocation = null;
-            });
-          }
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
-          minimumSize: Size(double.infinity, 56),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 2,
-        ),
-        child: Text(
-          "Announce Event",
-          style: textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: colorScheme.onPrimary,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: isDark ? AppColors.textOnDark : AppColors.textPrimary,
+            fontSize: 12,
           ),
         ),
-      ),
+        SizedBox(height: 4),
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: isDark ? AppColors.dividerDark : AppColors.divider,
+              ),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    color:
+                    isDark ? AppColors.textOnDark : AppColors.textPrimary,
+                  ),
+                ),
+                Icon(
+                  Icons.access_time,
+                  size: 20,
+                  color: isDark ? AppColors.textOnDark : AppColors.textPrimary,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

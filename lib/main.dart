@@ -4,12 +4,14 @@ import 'package:darlink/editable_client_profile_page.dart';
 import 'package:darlink/layout/home_layout.dart';
 import 'package:darlink/modules/admin/admin_dashboard.dart';
 import 'package:darlink/modules/admin/event_data.dart';
+import 'package:darlink/modules/admin/properties_page.dart';
 import 'package:darlink/modules/authentication/forget_password.dart';
 import 'package:darlink/modules/authentication/login_screen.dart';
 import 'package:darlink/modules/authentication/register_screen.dart';
 import 'package:darlink/modules/intro_screens/splash_screen.dart';
 import 'package:darlink/modules/navigation/event_screen.dart';
 import 'package:darlink/modules/chat_screen.dart';
+import 'package:darlink/modules/navigation/home_screen.dart';
 import 'package:darlink/modules/navigation/message_screen.dart';
 import 'package:darlink/modules/transaction_screen.dart';
 import 'package:darlink/modules/upload/property_upload.dart';
@@ -21,7 +23,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'modules/admin/users_page.dart';
 import 'modules/authentication/verify_user_change_password.dart';
+import 'modules/navigation/proprty_transaction.dart';
 
 Future<void> main() async {
   Future<bool> isLoggedIn() async {
@@ -52,7 +56,7 @@ class DarLinkApp extends StatelessWidget {
             theme: AppThemeData.lightTheme,
             darkTheme: AppThemeData.darkTheme,
             themeMode: ThemeMode.light,
-            home: EmailVerificationScreen(
+            home: LoginScreen(
             ),
             //home: SplashScreen(isLoggedIn: isLoggedIn),
           );

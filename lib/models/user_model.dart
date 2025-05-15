@@ -12,7 +12,8 @@ class User {
     required this.email,
     required this.role,
     required this.avatarUrl,
-    required this.joinDate,
+    required this.joinDate, 
+    required String phone,
   });
 
   // Create a copy of the user with updated fields
@@ -23,6 +24,7 @@ class User {
     String? role,
     String? avatarUrl,
     String? joinDate,
+    required String phone,
   }) {
     return User(
       id: id ?? this.id,
@@ -30,7 +32,8 @@ class User {
       email: email ?? this.email,
       role: role ?? this.role,
       avatarUrl: avatarUrl ?? this.avatarUrl,
-      joinDate: joinDate ?? this.joinDate,
+      joinDate: joinDate ?? this.joinDate, 
+      phone: phone,
     );
   }
 
@@ -54,7 +57,10 @@ class User {
       email: map['email'],
       role: map['role'],
       avatarUrl: map['avatarUrl'],
-      joinDate: map['joinDate'],
+      joinDate: map['joinDate'], 
+      phone:map['phone'],
     );
   }
+
+  get phone => null;
 }

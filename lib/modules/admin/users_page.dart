@@ -1,6 +1,7 @@
 import 'package:darlink/models/user_model.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:mongo_dart/mongo_dart.dart' as mongo;
+import '../../constants/Database_url.dart' as mg;
 
 class UsersPage extends StatefulWidget {
   const UsersPage({super.key});
@@ -10,35 +11,83 @@ class UsersPage extends StatefulWidget {
 }
 
 class _UsersPageState extends State<UsersPage> {
-  // Sample data for users
-  List<User> users = [
-    User(
-      id: '1',
-      email: 'john.doe@example.com',
-      role: 'Admin',
-      avatarUrl: 'assets/images/black.png',
-      joinDate: '2025-01-15',
-      username: 'johndoe',
-    ),
-    User(
-      id: '2',
-      username: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      role: 'Seller',
-      avatarUrl: 'assets/images/black.png',
-      joinDate: '2025-02-20',
-    ),
-    User(
-      id: '3',
-      username: 'Robert Johnson',
-      email: 'robert.johnson@example.com',
-      role: 'User',
-      avatarUrl: 'assets/images/black.png',
-      joinDate: '2025-03-10',
-    ),
-  ];
+  List<User> users = [];
+  bool isLoading = true;
 
-  final ImagePicker _picker = ImagePicker();
+  @override
+  void initState() {
+    super.initState();
+    _loadUsers();
+  }
+
+  Future<void> _loadUsers() async {
+    setState(() => isLoading = true);
+    try {
+      final userdata = await collect_info_users_admin();
+      setState(() {
+        users = userdata.map((doc) => User(
+          id: doc['_id']?.toString() ?? 'default_id',
+          email: doc['email'] ?? doc['Email'] ?? 'no-email@example.com',
+          role: doc['role'] ?? 'user',
+          avatarUrl: 'assets/images/black.png',
+          joinDate: doc['joinDate']?.toString() ?? '2025-01-15',
+          username: doc['username'] ?? doc['name'] ?? 'Anonymous',
+          phone: "76022800",
+        )).toList();
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading users: $e')),
+      );
+    }
+  }
+
+  Future<void> _deleteUser(String id) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        title: const Text(
+          'Confirm Delete',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'Are you sure you want to delete this user?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            onPressed: () async {
+              try {
+                var db = await mongo.Db.create(mg.mongo_url);
+                await db.open();
+                var collection = db.collection("user");
+                await collection.remove(mongo.where.id(mongo.ObjectId.parse(id)));
+                await db.close();
+                await _loadUsers();
+                Navigator.pop(context);
+              } catch (e) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error deleting user: $e')),
+                );
+              }
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,54 +109,6 @@ class _UsersPageState extends State<UsersPage> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: TextField(
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: 'Search users...',
-                        hintStyle:
-                            TextStyle(color: Colors.white.withOpacity(0.5)),
-                        border: InputBorder.none,
-                        icon: Icon(Icons.search,
-                            color: Colors.white.withOpacity(0.5)),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFAA14F0),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.filter_list, color: Colors.white),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Filters',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -140,9 +141,9 @@ class _UsersPageState extends State<UsersPage> {
                   ),
                 ),
                 Expanded(
-                  flex: 3,
+                  flex: 2,
                   child: Text(
-                    'Actions',
+                    'Action',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.9),
                       fontWeight: FontWeight.bold,
@@ -156,347 +157,29 @@ class _UsersPageState extends State<UsersPage> {
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: users.isEmpty
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : users.isEmpty
                 ? Center(
-                    child: Text(
-                      'No users available',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
-                        fontSize: 18,
-                      ),
-                    ),
-                  )
+              child: Text(
+                'No users available',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.7),
+                  fontSize: 18,
+                ),
+              ),
+            )
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: users.length,
-                    itemBuilder: (context, index) {
-                      final user = users[index];
-                      return UserCard(
-                        user: user,
-                        onEdit: () => _showUserForm(user),
-                        onDelete: () => _deleteUser(user.id),
-                        onProfilePictureTap: () =>
-                            _showProfilePictureOptions(user),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFFAA14F0),
-        onPressed: () => _showUserForm(null),
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-
-  Future<void> _pickImage(ImageSource source, User user) async {
-    try {
-      final XFile? pickedFile = await _picker.pickImage(source: source);
-      if (pickedFile != null) {
-        setState(() {
-          // In a real app, you would upload this image to a server
-          // and get back a URL to store in the user's avatarUrl field
-
-          // For now, we'll just update the user with a placeholder
-          final index = users.indexWhere((u) => u.id == user.id);
-          if (index != -1) {
-            // In a real app, you would use the actual URL from the server
-            // For demo purposes, we'll keep using the asset images
-            users[index] = user.copyWith(
-              avatarUrl:
-                  'assets/images/imagenew.png', // Using an existing asset as placeholder
-            );
-          }
-        });
-      }
-    } catch (e) {
-      // Handle any errors
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error picking image: $e')),
-      );
-    }
-  }
-
-  void _showProfilePictureOptions(User user) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF1E293B),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Change Profile Picture',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildProfilePictureOption(
-                  icon: Icons.camera_alt,
-                  label: 'Camera',
-                  onTap: () {
-                    Navigator.pop(context);
-                    _pickImage(ImageSource.camera, user);
-                  },
-                ),
-                _buildProfilePictureOption(
-                  icon: Icons.photo_library,
-                  label: 'Gallery',
-                  onTap: () {
-                    Navigator.pop(context);
-                    _pickImage(ImageSource.gallery, user);
-                  },
-                ),
-                _buildProfilePictureOption(
-                  icon: Icons.delete,
-                  label: 'Remove',
-                  onTap: () {
-                    Navigator.pop(context);
-                    setState(() {
-                      final index = users.indexWhere((u) => u.id == user.id);
-                      if (index != -1) {
-                        users[index] = user.copyWith(
-                          avatarUrl: 'assets/images/black.png', // Default image
-                        );
-                      }
-                    });
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProfilePictureOption({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFAA14F0).withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: Colors.white, size: 30),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showUserForm(User? user) {
-    final isEditing = user != null;
-    final nameController =
-        TextEditingController(text: isEditing ? user.username : '');
-    final emailController =
-        TextEditingController(text: isEditing ? user.email : '');
-    final roleController =
-        TextEditingController(text: isEditing ? user.role : '');
-    final avatarUrlController = TextEditingController(
-        text: isEditing ? user.avatarUrl : 'assets/images/black.png');
-    final joinDateController = TextEditingController(
-        text: isEditing
-            ? user.joinDate
-            : DateTime.now().toString().substring(0, 10));
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
-        title: Text(
-          isEditing ? 'Edit User' : 'Add New User',
-          style: const TextStyle(color: Colors.white),
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (isEditing)
-                GestureDetector(
-                  onTap: () => _showProfilePictureOptions(user),
-                  child: CircleAvatar(
-                    radius: 40,
-                    backgroundColor: Colors.grey[800],
-                    backgroundImage: AssetImage(user.avatarUrl),
-                    onBackgroundImageError: (exception, stackTrace) {},
-                    child:
-                        const Icon(Icons.person, color: Colors.white, size: 40),
-                  ),
-                ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: nameController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Full Name',
-                  labelStyle: TextStyle(color: Colors.white70),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white30),
-                  ),
-                ),
-              ),
-              TextField(
-                controller: emailController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Email Address',
-                  labelStyle: TextStyle(color: Colors.white70),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white30),
-                  ),
-                ),
-              ),
-              TextField(
-                controller: roleController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Role',
-                  labelStyle: TextStyle(color: Colors.white70),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white30),
-                  ),
-                ),
-              ),
-              TextField(
-                controller: avatarUrlController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Avatar URL (use black.png or imagenew.png)',
-                  labelStyle: TextStyle(color: Colors.white70),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white30),
-                  ),
-                ),
-              ),
-              TextField(
-                controller: joinDateController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Join Date (YYYY-MM-DD)',
-                  labelStyle: TextStyle(color: Colors.white70),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white30),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child:
-                const Text('Cancel', style: TextStyle(color: Colors.white70)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFAA14F0),
-            ),
-            onPressed: () {
-              // Validate inputs
-              if (nameController.text.isEmpty ||
-                  emailController.text.isEmpty ||
-                  roleController.text.isEmpty ||
-                  avatarUrlController.text.isEmpty ||
-                  joinDateController.text.isEmpty) {
-                // Show error
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please fill all fields')),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: users.length,
+              itemBuilder: (context, index) {
+                final user = users[index];
+                return UserCard(
+                  user: user,
+                  onDelete: () => _deleteUser(user.id),
                 );
-                return;
-              }
-
-              final newUser = User(
-                id: isEditing
-                    ? user.id
-                    : DateTime.now().millisecondsSinceEpoch.toString(),
-                username: nameController.text,
-                email: emailController.text,
-                role: roleController.text,
-                avatarUrl: avatarUrlController.text,
-                joinDate: joinDateController.text,
-              );
-
-              setState(() {
-                if (isEditing) {
-                  // Update existing user
-                  final index = users.indexWhere((u) => u.id == user.id);
-                  if (index != -1) {
-                    users[index] = newUser;
-                  }
-                } else {
-                  // Add new user
-                  users.add(newUser);
-                }
-              });
-
-              Navigator.pop(context);
-            },
-            child: Text(
-              isEditing ? 'Update' : 'Add',
-              style: const TextStyle(color: Colors.white),
+              },
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _deleteUser(String id) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
-        title: const Text(
-          'Confirm Delete',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: const Text(
-          'Are you sure you want to delete this user?',
-          style: TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child:
-                const Text('Cancel', style: TextStyle(color: Colors.white70)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
-            onPressed: () {
-              setState(() {
-                users.removeWhere((user) => user.id == id);
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -506,16 +189,12 @@ class _UsersPageState extends State<UsersPage> {
 
 class UserCard extends StatelessWidget {
   final User user;
-  final VoidCallback onEdit;
   final VoidCallback onDelete;
-  final VoidCallback onProfilePictureTap;
 
   const UserCard({
     super.key,
     required this.user,
-    required this.onEdit,
     required this.onDelete,
-    required this.onProfilePictureTap,
   });
 
   @override
@@ -529,22 +208,16 @@ class UserCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // User column with avatar and name
             Expanded(
               flex: 3,
               child: Row(
                 children: [
-                  GestureDetector(
-                    onTap: onProfilePictureTap,
-                    child: CircleAvatar(
-                      radius: 24,
-                      backgroundColor: Colors.grey[800],
-                      backgroundImage: AssetImage(user.avatarUrl),
-                      onBackgroundImageError: (exception, stackTrace) {},
-                      child: const Icon(Icons.person,
-                          color: Colors.white, size: 24),
-                    ),
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Colors.grey[800],
+                    backgroundImage: AssetImage(user.avatarUrl),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -567,6 +240,7 @@ class UserCard extends StatelessWidget {
                             color: Colors.white.withOpacity(0.7),
                             fontSize: 14,
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -574,8 +248,6 @@ class UserCard extends StatelessWidget {
                 ],
               ),
             ),
-
-            // Info column with email and join date
             Expanded(
               flex: 4,
               child: Column(
@@ -587,13 +259,15 @@ class UserCard extends StatelessWidget {
                           size: 16, color: Colors.white.withOpacity(0.7)),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(
-                          user.email,
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 14,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Text(
+                            user.email,
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 14,
+                            ),
                           ),
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -604,58 +278,50 @@ class UserCard extends StatelessWidget {
                       Icon(Icons.calendar_today,
                           size: 16, color: Colors.white.withOpacity(0.7)),
                       const SizedBox(width: 8),
-                      Text(
-                        'Joined: ${user.joinDate}',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
-                          fontSize: 14,
+                      Flexible(
+                        child: Text(
+                          'Joined: ${user.joinDate.length > 10 ? user.joinDate.substring(0, 10) : user.joinDate}',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                            fontSize: 14,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
-                  ),
+                  )
                 ],
               ),
             ),
-
-            // Actions column with update and delete buttons
             Expanded(
-              flex: 3,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child:
-                          const Icon(Icons.edit, color: Colors.blue, size: 20),
-                    ),
-                    onPressed: onEdit,
-                    tooltip: 'Update',
+              flex: 2,
+              child: IconButton(
+                icon: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child:
-                          const Icon(Icons.delete, color: Colors.red, size: 20),
-                    ),
-                    onPressed: onDelete,
-                    tooltip: 'Delete',
-                  ),
-                ],
+                  child: const Icon(Icons.delete, color: Colors.red, size: 20),
+                ),
+                onPressed: onDelete,
               ),
             ),
           ],
         ),
       ),
     );
+  }
+}
+
+Future<List<Map<String, dynamic>>> collect_info_users_admin() async {
+  var db = await mongo.Db.create(mg.mongo_url);
+  await db.open();
+  try {
+    var collection = db.collection("user");
+    var userdata = await collection.find().toList();
+    return userdata.map((doc) => doc as Map<String, dynamic>).toList();
+  } finally {
+    await db.close();
   }
 }

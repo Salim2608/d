@@ -1,13 +1,13 @@
 import 'package:darlink/layout/home_layout.dart';
 import 'package:darlink/models/property.dart';
+import 'package:darlink/modules/upload/property_upload.dart';
 import 'package:darlink/shared/widgets/card/propertyCard.dart';
 import 'package:darlink/modules/authentication/login_screen.dart' as lg;
 import 'package:flutter/material.dart';
 import 'package:darlink/constants/colors/app_color.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
+import 'package:lottie/lottie.dart';
 import '../../constants/Database_url.dart' as mg;
-
-var username = "";
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -17,78 +17,83 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  List<Property> properties = [];
+  bool isLoading = true;
+  String username = "";
+
   @override
   void initState() {
     super.initState();
-    getAllTodo();
+    _fetchUserData();
   }
 
-  Future<void> getAllTodo() async {
-    var db = await mongo.Db.create(mg.mongo_url);
-    await db.open();
-    var collection = db.collection("user");
-    username = (await collection.findOne(mongo.where.eq("Email", lg.usermail)))
-        as String;
-    print(username); // Or handle the retrieved document as needed
-    await db.close();
-    setState(() async {
-      username = (await collection
-          .findOne(mongo.where.eq("Email", lg.usermail))) as String;
+  Future<void> _fetchUserData() async {
+    setState(() {
+      isLoading = true;
     });
-  }
 
-  final Property property = Property(
-    title: "Green Valley Villa",
-    price: 3200.00,
-    address: "123 Eco Lane, Greenville",
-    area: 1800,
-    bedrooms: 3,
-    bathrooms: 2,
-    kitchens: 1,
-    ownerName: "Ahmad Nasser",
-    imageUrl: ["assets/images/building.jpg"],
-    amenities: ["Solar Panels", "Rainwater Harvesting", "Organic Garden"],
-    interiorDetails: ["white floor"],
-    lang: 3.1,
-    lat: 3.1,
-    id: -1,
-  );
+    try {
+      var db = await mongo.Db.create(mg.mongo_url);
+      await db.open();
+      var collection = db.collection("user");
+
+      var user = await collection.findOne(mongo.where.eq("Email", lg.usermail));
+
+      if (user != null) {
+        setState(() {
+          username = user['name']?.toString() ?? lg.username;
+        });
+
+        // Fetch user's properties if needed
+        // This is just a placeholder - adjust according to your database structure
+        properties = []; // Replace with actual property fetching logic
+      }
+    } catch (e) {
+      print("Error fetching user data: $e");
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colors = theme.colorScheme;
     final textTheme = theme.textTheme;
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-          backgroundColor: AppColors.primary,
-          elevation: 0,
-          title: Text(
-            'Owner Profile',
-            style: textTheme.titleLarge?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+        title: Text(
+          'Owner Profile',
+          style: textTheme.titleLarge?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
-          iconTheme: const IconThemeData(color: Colors.white),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pushReplacement(
-                (context),
-                MaterialPageRoute(
-                  builder: (context) => HomeLayout(),
-                ),
-              );
-            },
-          )),
-      body: SingleChildScrollView(
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomeLayout(),
+              ),
+            );
+          },
+        ),
+      ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator(color: AppColors.primary))
+          : SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Profile Header with green accent
+            // Profile Header
             Container(
               padding: const EdgeInsets.only(top: 20, bottom: 30),
               decoration: BoxDecoration(
@@ -116,8 +121,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: CircleAvatar(
                             radius: 40,
                             backgroundImage:
-                                const AssetImage("assets/images/mounir.jpg"),
-                            backgroundColor: colors.surfaceVariant,
+                            const AssetImage("assets/icon/logo.png"),
+                            backgroundColor: theme.colorScheme.surfaceVariant,
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -125,7 +130,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              lg.username,
+                              username,
                               style: textTheme.headlineSmall?.copyWith(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.bold,
@@ -141,7 +146,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             const SizedBox(height: 4),
                             Row(
                               children: [
-                                Icon(Icons.star, color: Colors.amber, size: 16),
+                                Icon(Icons.star,
+                                    color: Colors.amber, size: 16),
                                 const SizedBox(width: 4),
                                 Text(
                                   "4.9 (128 reviews)",
@@ -205,7 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 8),
                   Text(
                     "Specializing in eco-friendly properties with 10+ years experience. "
-                    "Committed to sustainable living and green architecture.",
+                        "Committed to sustainable living and green architecture.",
                     style: textTheme.bodyMedium?.copyWith(
                       color: Colors.grey[700],
                     ),
@@ -238,32 +244,77 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          "View All",
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
+                      if (properties.isNotEmpty)
+                        TextButton(
+                          onPressed: () {},
+                          child: Text(
+                            "View All",
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 10),
 
-                  // Property List
-                  ListView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: 3,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: PropertyCard(property: property),
-                      );
-                    },
-                  ),
+                  // Property List or Empty State
+                  if (properties.isEmpty)
+                    Column(
+                      children: [
+                        const SizedBox(height: 16),
+                        Text(
+                          "No properties found",
+                          style: textTheme.titleMedium?.copyWith(
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "You haven't added any properties yet",
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () {
+
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (context) => const PropertyUploadScreen()),
+                            );
+
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 12),
+                          ),
+                          child: Text(
+                            "Add Property",
+                            style: textTheme.labelLarge?.copyWith(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    ListView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: properties.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: PropertyCard(property: properties[index]),
+                        );
+                      },
+                    ),
                 ],
               ),
             ),

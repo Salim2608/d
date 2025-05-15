@@ -1,17 +1,16 @@
 import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:darlink/models/property.dart';
 import 'package:darlink/shared/widgets/map/Virtual_tour.dart';
 import 'package:darlink/shared/widgets/map/map_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
 
 import '../../constants/Database_url.dart' as mg;
-import '../authentication/login_screen.dart';
 import '../authentication/login_screen.dart' as lg;
+import '../navigation/proprty_transaction.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
   final Property property;
@@ -20,24 +19,44 @@ class PropertyDetailsScreen extends StatefulWidget {
     super.key,
     required this.property,
   });
-  void main() async {
-    WidgetsFlutterBinding.ensureInitialized();
-    await initializePropertyDatabase();
-    runApp(_PropertyDetailsScreenState() as Widget);
-  }
 
   @override
   _PropertyDetailsScreenState createState() => _PropertyDetailsScreenState();
-
-  Future<void> initializePropertyDatabase() async {
-    var db = await mongo.Db.create(mg.mongo_url);
-    await db.open();
-    var collection = db.collection("user");
-    var user_table = collection.findOne(mongo.where.eq('user', username));
-  }
 }
 
 class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
+  bool amenitiesExpanded = false;
+  bool interiorExpanded = false;
+  bool constructionExpanded = false;
+  bool isSaved = false;
+  bool isLoadingSave = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfSaved();
+  }
+
+  Future<void> _checkIfSaved() async {
+    try {
+      var db = await mongo.Db.create(mg.mongo_url);
+      await db.open();
+      var collection = db.collection("user");
+
+      var user = await collection.findOne(
+          mongo.where.eq('Email', lg.usermail),
+      );
+
+      if (user != null && user['whishlist'] != null) {
+        setState(() {
+          isSaved = (user['whishlist'] as List).contains(widget.property.id);
+        });
+      }
+    } catch (e) {
+      print('Error checking saved status: $e');
+    }
+  }
+
   Image base64ToImage(String base64String) {
     return Image.memory(
       base64.decode(base64String.startsWith('data:image')
@@ -46,11 +65,6 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       errorBuilder: (_, __, ___) => const Icon(Icons.error),
     );
   }
-
-  bool amenitiesExpanded = false;
-  bool interiorExpanded = false;
-  bool constructionExpanded = false;
-  bool isSaved = false;
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +95,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               isSaved ? Icons.bookmark : Icons.bookmark_outline,
               color: colors.onPrimary,
             ),
-            onPressed: () => setState(() => isSaved = !isSaved),
+            onPressed: () => _toggleSaveProperty(),
           ),
         ],
       ),
@@ -98,7 +112,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               'Amenities',
               widget.property.amenities,
               amenitiesExpanded,
-              () => setState(() => amenitiesExpanded = !amenitiesExpanded),
+                  () => setState(() => amenitiesExpanded = !amenitiesExpanded),
             ),
             _buildExpandableSection(
               theme,
@@ -107,12 +121,79 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               'Interior Details',
               widget.property.interiorDetails,
               interiorExpanded,
-              () => setState(() => interiorExpanded = !interiorExpanded),
+                  () => setState(() => interiorExpanded = !interiorExpanded),
             ),
             _buildLocationSection(theme, colors, textTheme),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: ElevatedButton(
+                onPressed: _showTransactionInfo,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colors.secondary,
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'Transaction Info',
+                  style: textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colors.onSecondary,
+                  ),
+                ),
+              ),
+            ),
             _buildSaveButton(theme, colors),
             const SizedBox(height: 24),
           ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _toggleSaveProperty() async {
+    setState(() => isLoadingSave = true);
+    try {
+      var db = await mongo.Db.create(mg.mongo_url);
+      await db.open();
+      var collection = db.collection("user");
+
+      var updateOperation = isSaved
+          ? mongo.modify.pull('whishlist', widget.property.id)
+          : mongo.modify.push('whishlist', widget.property.id);
+
+      await collection.update(
+        mongo.where.eq('Email', lg.usermail),
+        updateOperation,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isSaved
+              ? 'Removed from wishlist'
+              : 'Added to wishlist'),
+        ),
+      );
+
+      setState(() => isSaved = !isSaved);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+      print('Error updating wishlist: $e');
+    } finally {
+      setState(() => isLoadingSave = false);
+    }
+  }
+
+  void _showTransactionInfo() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PropertyTransaction(
+          price: widget.property.price.toString(),
+          owner: widget.property.ownerName,
+          title: widget.property.title,
         ),
       ),
     );
@@ -129,20 +210,18 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Property Image with Virtual Tour
           InkWell(
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
-                      const ExampleScreen1(title: 'Virtual Tour'),
+                  const ExampleScreen3(title: 'Virtual Tour'),
                 ),
               );
             },
             child: ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
               child: AspectRatio(
                 aspectRatio: 16 / 9,
                 child: Image.memory(
@@ -189,11 +268,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 16,
-                      color: colors.onSurface.withOpacity(0.6),
-                    ),
+                    Icon(Icons.location_on, size: 16, color: colors.onSurface.withOpacity(0.6)),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
@@ -293,16 +368,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.property.ownerName,
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+              child: Text(
+                widget.property.ownerName,
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -312,14 +382,14 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   }
 
   Widget _buildExpandableSection(
-    ThemeData theme,
-    ColorScheme colors,
-    TextTheme textTheme,
-    String title,
-    List<String> items,
-    bool isExpanded,
-    VoidCallback onTap,
-  ) {
+      ThemeData theme,
+      ColorScheme colors,
+      TextTheme textTheme,
+      String title,
+      List<String> items,
+      bool isExpanded,
+      VoidCallback onTap,
+      ) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 1,
@@ -328,9 +398,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           ListTile(
             title: Text(
               title,
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             trailing: Icon(
               isExpanded ? Icons.expand_less : Icons.expand_more,
@@ -346,12 +414,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 runSpacing: 8,
                 children: items
                     .map((item) => Chip(
-                          backgroundColor: colors.surfaceVariant,
-                          label: Text(
-                            item,
-                            style: textTheme.bodyMedium,
-                          ),
-                        ))
+                  backgroundColor: colors.surfaceVariant,
+                  label: Text(item, style: textTheme.bodyMedium),
+                ))
                     .toList(),
               ),
             ),
@@ -362,6 +427,14 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
   Widget _buildLocationSection(
       ThemeData theme, ColorScheme colors, TextTheme textTheme) {
+    final LatLng propertyLatLng = LatLng(widget.property.lang, widget.property.lat);
+
+    final Marker propertyMarker = Marker(
+      markerId: const MarkerId('propertyMarker'),
+      position: propertyLatLng,
+      infoWindow: InfoWindow(title: widget.property.title),
+    );
+
     return Card(
       margin: const EdgeInsets.all(16),
       elevation: 1,
@@ -372,37 +445,24 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Text(
               'Location',
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => map_page()),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  height: 180,
-                  decoration: BoxDecoration(
-                    color: colors.surfaceVariant,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(widget.property.lat as double,
-                          widget.property.lang as double),
-                      zoom: 14,
-                    ),
-                    markers: {_marker}, // set of markers
-                  ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: SizedBox(
+              height: 180,
+              width: double.infinity,
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: propertyLatLng,
+                  zoom: 7,
                 ),
+                markers: {propertyMarker},
+                zoomControlsEnabled: false,
+                myLocationButtonEnabled: false,
+                mapType: MapType.normal,
+                onMapCreated: (GoogleMapController controller) {},
               ),
             ),
           ),
@@ -415,36 +475,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ElevatedButton(
-        onPressed: () async {
-          try {
-            // Connect to database
-            var db = await mongo.Db.create(mg.mongo_url);
-            await db.open();
-            var collection = db.collection("user");
-            print('----------------------------------------------');
-            print(widget.property.id);
-
-            // Find user document
-            var user =
-                await collection.findOne(mongo.where.eq('name', lg.username));
-
-            if (user != null) {
-              if (isSaved) {
-                await collection.update(
-                  mongo.where.eq('name', username),
-                  mongo.modify.push('whishlist', widget.property.id),
-                );
-              } else {
-                // Update UI state
-                setState(() => isSaved = !isSaved);
-              }
-            }
-          } catch (e) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error: ${e.toString()}')),
-            );
-          }
-        },
+        onPressed: isLoadingSave ? null : _toggleSaveProperty,
         style: ElevatedButton.styleFrom(
           backgroundColor: isSaved ? colors.secondary : colors.primary,
           minimumSize: const Size(double.infinity, 56),
@@ -452,7 +483,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-        child: Text(
+        child: isLoadingSave
+            ? const CircularProgressIndicator(color: Colors.white)
+            : Text(
           isSaved ? 'PROPERTY SAVED' : 'SAVE THIS PROPERTY',
           style: theme.textTheme.labelLarge?.copyWith(
             fontWeight: FontWeight.bold,
@@ -462,10 +495,4 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       ),
     );
   }
-
-  final Marker _marker = Marker(
-    markerId: MarkerId('initialMarker'),
-    position: LatLng(37.4223, -122.0848),
-    infoWindow: InfoWindow(title: 'Marker Title'),
-  );
 }

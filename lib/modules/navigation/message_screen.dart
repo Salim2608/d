@@ -13,21 +13,21 @@ class MessageScreen extends StatefulWidget {
 class _MessageScreenState extends State<MessageScreen> {
   List<Chat> chats = [
     Chat(
-      name: "Robert Fox",
+      name: "Ahmad Ahmad",
       icon: "assets/images/robert.png",
       isGroup: "false",
       time: "2:30 PM",
       currentMessage: "Hello, how are you?",
     ),
     Chat(
-      name: "Kristin Watson",
+      name: "Sami Issa",
       icon: "assets/images/kristin.png",
       isGroup: "false",
       time: "1:45 PM",
       currentMessage: "Are you coming to the party?",
     ),
     Chat(
-      name: "Cody Fisher",
+      name: "Rani Alhaj",
       icon: "assets/images/cody.png",
       isGroup: "false",
       time: "12:00 PM",

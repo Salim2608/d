@@ -207,6 +207,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'name': _usernameController.text,
         'Password': _passwordController.text,
         'Email': _emailController.text,
+        'phone':_phoneController.text,
         'whishlist': [0]
       });
 

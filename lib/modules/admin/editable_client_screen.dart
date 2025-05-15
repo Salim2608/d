@@ -9,6 +9,7 @@ User mockUser = User(
   role: 'User',
   avatarUrl: 'assets/images/black.png', // Placeholder avatar
   joinDate: '2024-01-01',
+  phone: '',
 );
 
 class EditableClientProfilePage extends StatefulWidget {
@@ -64,6 +65,7 @@ class _EditableClientProfilePageState extends State<EditableClientProfilePage> {
         mockUser = mockUser.copyWith(
           name: _nameController.text,
           email: _emailController.text,
+          phone: '',
           // Update other fields as needed
         );
       });

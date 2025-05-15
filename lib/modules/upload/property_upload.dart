@@ -11,6 +11,7 @@ import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import 'dart:convert';
 import '../../constants/Database_url.dart' as mg;
 import '../../models/transaction page.dart';
+import '../authentication/login_screen.dart' as lg;
 
 void main() => runApp(MaterialApp(
       theme: AppThemeData.lightTheme,
@@ -1208,7 +1209,7 @@ setState(() {
           var db = await mongo.Db.create(mg.mongo_url);
           await db.open();
           var collection = db.collection("Property");
-          await collection.insert({
+          await collection.insertOne({
             'Title': titleController.text,
             'Address': addressController.text,
             'Property_type': propertyTypes.toString(),
@@ -1224,8 +1225,9 @@ setState(() {
             },
             'Image': await _convertImageFilesToBase64(_imageFiles),
             'ID': id,
-            'Area': areaController,
-            'Admit': false
+            'Area': areaController.text,
+            'Admit': false,
+            'user':lg.username
           });
           Navigator.push(
             context,

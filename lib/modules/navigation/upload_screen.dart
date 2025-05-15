@@ -63,7 +63,7 @@ class _UploadScreenState extends State<UploadScreen>
   void _navigateToPropertyEventScreen(BuildContext context) {
     // Navigate to HomeLayout
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const AnnounceEventScreen()),
+      MaterialPageRoute(builder: (context) => const AnnouceEventScreen()),
     );
   }
 

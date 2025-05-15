@@ -314,7 +314,7 @@ class _HomeScreenState extends State<PropertiesPage> {
               MaterialPageRoute(builder: (context) => const ProfileScreen()),
             ),
             child: const CircleAvatar(
-              backgroundImage: AssetImage("assets/images/mounir.jpg"),
+              backgroundImage: AssetImage("assets/icon/logo.png"),
               backgroundColor: Colors.white,
             ),
           ),

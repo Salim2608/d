@@ -44,6 +44,7 @@ flutter:
   assets:
     - assets/images/
     - assets/lottie/
+    - assets/icon/
 flutter_icons:
   android: true
   ios: true

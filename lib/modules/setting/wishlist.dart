@@ -22,6 +22,7 @@ class WishListScreen extends StatefulWidget {
 class _WishListScreenState extends State<WishListScreen> {
   List<Property> properties = [];
   bool isLoading = true;
+  bool isEmpty = false;
 
   @override
   void initState() {
@@ -32,59 +33,52 @@ class _WishListScreenState extends State<WishListScreen> {
   Future<void> _fetchProperty() async {
     setState(() {
       isLoading = true;
+      isEmpty = false;
     });
-    final all_proprty_info =
-        await MongoDatabase.collect_info_properties_whishlist();
 
-    if (all_proprty_info.isNotEmpty) {
-      properties.clear();
-      for (var info in all_proprty_info) {
-        properties.add(Property(
-          title: info['Title']?.toString() ?? 'No Title',
-          price: double.tryParse(info['Price']?.toString() ?? '') ?? 0.0,
-          address: info['Address']?.toString() ?? 'null',
-          area: int.tryParse(info['Area']?.toString() ?? '') ?? 0,
-          bedrooms: int.tryParse(info['Bedroom']?.toString() ?? '') ?? 0,
-          bathrooms: int.tryParse(info['Bathroom']?.toString() ?? '') ?? 0,
-          kitchens: int.tryParse(info['Kitchen']?.toString() ?? '') ?? 0,
-          ownerName: info['ownerName']?.toString() ?? 'Owner',
-          imageUrl: info['Image'] as List<dynamic>,
-          amenities: ["swim pool", "led light"],
-          lang: double.tryParse(
-                  info['location']?['latitude']?.toString() ?? '') ??
-              0.0,
-          lat: double.tryParse(
-                  info['location']?['longitude']?.toString() ?? '') ??
-              0.0,
-          interiorDetails: ["white floor"],
-          id: int.tryParse(info['ID']?.toString() ?? '') ?? 0,
-        ));
+    try {
+      final all_proprty_info =
+      await MongoDatabase.collect_info_properties_whishlist();
+
+      if (all_proprty_info.isNotEmpty) {
+        properties.clear();
+        for (var info in all_proprty_info) {
+          properties.add(Property(
+            title: info['Title']?.toString() ?? 'No Title',
+            price: double.tryParse(info['Price']?.toString() ?? '') ?? 0.0,
+            address: info['Address']?.toString() ?? 'null',
+            area: int.tryParse(info['Area']?.toString() ?? '') ?? 0,
+            bedrooms: int.tryParse(info['Bedroom']?.toString() ?? '') ?? 0,
+            bathrooms: int.tryParse(info['Bathroom']?.toString() ?? '') ?? 0,
+            kitchens: int.tryParse(info['Kitchen']?.toString() ?? '') ?? 0,
+            ownerName: info['ownerName']?.toString() ?? 'Owner',
+            imageUrl: info['Image'] as List<dynamic>,
+            amenities: ["swim pool", "led light"],
+            lang: double.tryParse(
+                info['location']?['latitude']?.toString() ?? '') ??
+                0.0,
+            lat: double.tryParse(
+                info['location']?['longitude']?.toString() ?? '') ??
+                0.0,
+            interiorDetails: ["white floor"],
+            id: int.tryParse(info['ID']?.toString() ?? '') ?? 0,
+          ));
+        }
+      } else {
+        setState(() {
+          isEmpty = true;
+        });
       }
-    } else {
-      properties = List.generate(
-        4,
-        (index) => Property(
-          title: "Sample Property",
-          price: 100000,
-          address: "Bshamoun",
-          area: 120,
-          bedrooms: 3,
-          bathrooms: 2,
-          kitchens: 1,
-          ownerName: "Owner Name",
-          imageUrl: [],
-          amenities: ["swim pool", "led light"],
-          interiorDetails: ["white floor"],
-          lang: 3.1,
-          lat: 3.1,
-          id: -1,
-        ),
-      );
+    } catch (e) {
+      print('Error fetching wishlist: $e');
+      setState(() {
+        isEmpty = true;
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
-
-    setState(() {
-      isLoading = false;
-    });
   }
 
   Future<void> _removeFromWishlist(int propertyId) async {
@@ -105,6 +99,9 @@ class _WishListScreenState extends State<WishListScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Removed from wishlist successfully')),
       );
+
+      // Refresh the list after removal
+      await _fetchProperty();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -155,7 +152,30 @@ class _WishListScreenState extends State<WishListScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: _buildAppBar(context, textTheme),
-      body: Column(
+      body: isEmpty
+          ? Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+
+            const SizedBox(height: 20),
+            Text(
+              "Your wishlist is empty",
+              style: textTheme.titleLarge?.copyWith(
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Start adding properties to your wishlist",
+              style: textTheme.bodyMedium?.copyWith(
+                color: Colors.grey[500],
+              ),
+            ),
+          ],
+        ),
+      )
+          : Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
@@ -284,7 +304,7 @@ class _WishListScreenState extends State<WishListScreen> {
               MaterialPageRoute(builder: (context) => const ProfileScreen()),
             ),
             child: const CircleAvatar(
-              backgroundImage: AssetImage("assets/images/mounir.jpg"),
+              backgroundImage: AssetImage(""),
               backgroundColor: Colors.white,
             ),
           ),

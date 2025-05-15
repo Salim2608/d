@@ -21,6 +21,8 @@ class MongoDatabase {
     await db.open();
   }
 
+
+
   static Future<String> collect_user_info() async {
     var db = await mongo.Db.create(mg.mongo_url);
     await db.open();
@@ -48,6 +50,7 @@ class MongoDatabase {
     return propertydata;
   }
 
+
   static Future<List<Map<String, dynamic>>>
       collect_info_properties_whishlist() async {
     var db = await mongo.Db.create(mg.mongo_url);
@@ -58,7 +61,7 @@ class MongoDatabase {
 
       // Find the user
       var specificUser = await userCollection
-          .findOne(mongo.where.eq("Email", "salimshatila21@gmail.com"));
+          .findOne(mongo.where.eq("Email", lg.usermail));
 
       // Get whishlist IDs
       var whishlistIds = specificUser?["whishlist"];
@@ -86,4 +89,13 @@ class MongoDatabase {
     largest_id = largest_id_table?['ID'] as int? ?? 1;
     return largest_id;
   }
+  static Future<String?> phone_nb_by_user(String username) async {
+    var db = await mongo.Db.create(mg.mongo_url);
+    await db.open();
+    var collection = db.collection("user");
+var user_data =await collection.findOne(mongo.where.eq("name", username));
+var user_phonenb = user_data?['phone'].toString();
+    return user_phonenb;
+  }
+
 }

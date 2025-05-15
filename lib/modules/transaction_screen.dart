@@ -8,9 +8,9 @@ class TransactionScreen extends StatefulWidget {
 
   const TransactionScreen({
     super.key,
-    this.buyerName = "Ahmad Youssef",
-    this.property = "Salim Street, 150 sqft, 2 Bed, 2 Bath",
-    this.amount = 15000.00,
+    this.buyerName = "User",
+    this.property = "Title",
+    this.amount = 50,
   });
 
   @override
@@ -21,18 +21,13 @@ class _TransactionScreenState extends State<TransactionScreen> {
   final List<PaymentMethod> paymentMethods = [
     PaymentMethod(
       name: "Whish Money",
-      recipientName: "Salim Properties",
+      recipientName: "Darlink",
       phoneNumber: "+961 71 123 456",
     ),
     PaymentMethod(
       name: "OMT",
-      recipientName: "Salim Akal",
+      recipientName: "Darlink",
       phoneNumber: "+961 76 987 654",
-    ),
-    PaymentMethod(
-      name: "CashUnited",
-      recipientName: "Salim Group",
-      phoneNumber: "+961 3 456 789",
     ),
   ];
 
@@ -313,7 +308,7 @@ class _TransactionScreenState extends State<TransactionScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                "After payment, please send a confirmation screenshot via in-app chat or WhatsApp.",
+                "After payment, please send a confirmation screenshot via WhatsApp to approve your property .",
                 style: textTheme.bodySmall?.copyWith(
                   color: colors.onSurface.withOpacity(0.8),
                 ),
