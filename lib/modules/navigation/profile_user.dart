@@ -66,7 +66,7 @@ class _ProfileUserScreenState extends State<ProfileUserScreen> {
         username: userDoc['name']?.toString() ?? username,
         email: userDoc['Email']?.toString() ?? "",
         role: "user",
-        avatarUrl: "assets/images/mounir.jpg", // Now properly nullable
+        avatarUrl: "assets/images/default_user.jpg",
         joinDate: userDoc['joinDate']?.toString() ?? DateTime.now().toString(),
         phone: userDoc['phone']?.toString() ?? "76022800",
       );

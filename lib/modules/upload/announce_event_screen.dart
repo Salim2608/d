@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
+import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:mongo_dart/mongo_dart.dart' as mongo;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -29,6 +30,7 @@ class _AnnouceEventScreenState extends State<AnnouceEventScreen> {
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
   File? _image;
+  String? _imageBase64;
   LatLng? _selectedLocation;
 
   GoogleMapController? _mapController;
@@ -144,13 +146,20 @@ class _AnnouceEventScreenState extends State<AnnouceEventScreen> {
     if (source != null) {
       final picked = await ImagePicker().pickImage(source: source);
       if (picked != null) {
-        setState(() => _image = File(picked.path));
+        final bytes = await File(picked.path).readAsBytes();
+        setState(() {
+          _image = File(picked.path);
+          _imageBase64 = base64Encode(bytes);
+        });
       }
     }
   }
 
   void _deleteImage() {
-    setState(() => _image = null);
+    setState(() {
+      _image = null;
+      _imageBase64 = null;
+    });
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -636,15 +645,14 @@ class _AnnouceEventScreenState extends State<AnnouceEventScreen> {
                           await collection.insert({
                             'Event Name': _eventNameController.text,
                             'address': _addressController.text,
-                            'startDateTime': startDateTime,
-                            'endDateTime': endDateTime,
+                            'date': startDateTime,
                             'price': _ticketPriceController.text,
                             'location': {
                               'latitude': _selectedLocation!.latitude,
                               'longitude': _selectedLocation!.longitude,
                             },
                             'description': _descriptionController.text,
-                            'image': _image != null ? _image!.path : null,
+                            'image': _imageBase64, // Using base64 string now
                             'celeb': _celebrityController.text,
                           });
 
@@ -657,6 +665,7 @@ class _AnnouceEventScreenState extends State<AnnouceEventScreen> {
                           _formKey.currentState?.reset();
                           setState(() {
                             _image = null;
+                            _imageBase64 = null;
                             _startDate = null;
                             _endDate = null;
                             _startTime = null;

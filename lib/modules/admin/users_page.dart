@@ -25,15 +25,21 @@ class _UsersPageState extends State<UsersPage> {
     try {
       final userdata = await collect_info_users_admin();
       setState(() {
-        users = userdata.map((doc) => User(
-          id: doc['_id']?.toString() ?? 'default_id',
-          email: doc['email'] ?? doc['Email'] ?? 'no-email@example.com',
-          role: doc['role'] ?? 'user',
-          avatarUrl: 'assets/images/black.png',
-          joinDate: doc['joinDate']?.toString() ?? '2025-01-15',
-          username: doc['username'] ?? doc['name'] ?? 'Anonymous',
-          phone: "76022800",
-        )).toList();
+        users = userdata.map((doc) {
+          final id = doc['_id'] is mongo.ObjectId
+              ? (doc['_id'] as mongo.ObjectId).toHexString()
+              : doc['_id']?.toString() ?? 'default_id';
+
+          return User(
+            id: id,
+            email: doc['email'] ?? doc['Email'] ?? 'no-email@example.com',
+            role: doc['role'] ?? 'user',
+            avatarUrl: 'assets/images/black.png',
+            joinDate: doc['joinDate']?.toString() ?? '2025-01-15',
+            username: doc['username'] ?? doc['name'] ?? 'Anonymous',
+            phone: "76022800",
+          );
+        }).toList();
         isLoading = false;
       });
     } catch (e) {
@@ -71,7 +77,9 @@ class _UsersPageState extends State<UsersPage> {
                 var db = await mongo.Db.create(mg.mongo_url);
                 await db.open();
                 var collection = db.collection("user");
-                await collection.remove(mongo.where.id(mongo.ObjectId.parse(id)));
+                await collection.remove(
+                    mongo.where.id(mongo.ObjectId.fromHexString(id))
+                );
                 await db.close();
                 await _loadUsers();
                 Navigator.pop(context);
@@ -109,53 +117,45 @@ class _UsersPageState extends State<UsersPage> {
       ),
       body: Column(
         children: [
+          // Header Row
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             decoration: BoxDecoration(
               color: const Color(0xFF1E293B),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Row(
+            child: const Row(
               children: [
                 Expanded(
                   flex: 3,
                   child: Text(
                     'User',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
                     ),
                   ),
                 ),
                 Expanded(
                   flex: 4,
                   child: Text(
-                    'Info',
+                    'Contact Info',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
                     ),
                   ),
                 ),
                 Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Action',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+                  flex: 1,
+                  child: SizedBox(), // Empty space for alignment
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 8),
+
+          // Users List
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -207,105 +207,96 @@ class UserCard extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              flex: 3,
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: Colors.grey[800],
-                    backgroundImage: AssetImage(user.avatarUrl),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user.username,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          user.role,
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
-                            fontSize: 14,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 4,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.email,
-                          size: 16, color: Colors.white.withOpacity(0.7)),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Text(
-                            user.email,
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(Icons.calendar_today,
-                          size: 16, color: Colors.white.withOpacity(0.7)),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          'Joined: ${user.joinDate.length > 10 ? user.joinDate.substring(0, 10) : user.joinDate}',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
-                            fontSize: 14,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.delete, color: Colors.red, size: 20),
+            // First Row: Avatar and Username
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: Colors.grey[800],
+                  backgroundImage: AssetImage(user.avatarUrl),
                 ),
-                onPressed: onDelete,
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user.username,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        user.role.toUpperCase(),
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.7),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.delete, color: Colors.red, size: 20),
+                  ),
+                  onPressed: onDelete,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            // Second Row: Email and other info
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.email, size: 16, color: Colors.white.withOpacity(0.7)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        user.email,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 14,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.calendar_today, size: 16, color: Colors.white.withOpacity(0.7)),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Joined: ${user.joinDate.length > 10 ? user.joinDate.substring(0, 10) : user.joinDate}',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ],
         ),

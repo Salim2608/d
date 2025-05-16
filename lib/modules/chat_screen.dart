@@ -1,10 +1,10 @@
 import 'package:darlink/models/contact.dart';
 import 'package:darlink/models/message.dart';
-import 'package:darlink/shared/widgets/chat_widget/attachment_option.dart';
-import 'package:darlink/shared/widgets/chat_widget/message_bubble.dart';
+import 'package:darlink/shared/widgets/card/message/own_message_card.dart';
+import 'package:darlink/shared/widgets/card/message/reply_message_card.dart';
 import 'package:flutter/material.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'dart:async';
-
 import 'package:url_launcher/url_launcher.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -15,15 +15,30 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
-  final TextEditingController _controller = TextEditingController();
+  final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
-  bool _showAttachmentOptions = false;
+  FocusNode focusNode = FocusNode();
+  bool sendButton = false;
+  List<Message> messages = [];
+  late IO.Socket socket;
+
   Contact contact = Contact(
-    name: 'Ervin Crouse',
-    avatarUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
+    name: 'Khaled Assidi',
+    avatarUrl:
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8_FaE8B_dkkXBhdKqVoAR_n5jbxGerW-lRQ&s',
     isOnline: true,
     typingStatus: null,
   );
+
+  // Sample messages for testing UI
+  List<Map<String, String>> chatMessages = [
+    {"sender": "me", "text": "Hi"},
+    {"sender": "other", "text": "Hi"},
+    {"sender": "other", "text": "Kifk"},
+    {"sender": "me", "text": "Kello tmm"},
+    {"sender": "other", "text": "El 7amdela"},
+  ];
 
   Future<void> _makePhoneCall(String phoneNumber) async {
     final Uri url = Uri(scheme: 'tel', path: phoneNumber);
@@ -35,34 +50,170 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    focusNode.addListener(() {
+      if (focusNode.hasFocus) {
+        setState(() {});
+      }
+    });
+
+    // Monitor text changes to show/hide send button
+    _messageController.addListener(() {
+      setState(() {
+        sendButton = _messageController.text.isNotEmpty;
+      });
+    });
+
+    connect();
+  }
+
+  void connect() {
+    try {
+      final String serverUrl =
+          "http://10.0.2.2:5000"; // For Android emulator connecting to localhost
+
+      print("Attempting to connect to: $serverUrl");
+
+      socket = IO.io(
+        serverUrl,
+        IO.OptionBuilder()
+            .setTransports(['websocket'])
+            .enableAutoConnect()
+            .enableForceNew()
+            .setReconnectionAttempts(5)
+            .setReconnectionDelay(5000)
+            .setTimeout(10000) // Increase timeout to 10 seconds
+            .build(),
+      );
+
+      socket.connect();
+
+      socket.onConnect((_) {
+        print('Connected to socket server at $serverUrl');
+        socket.emit("test", "Hello from Flutter");
+      });
+
+      socket.onConnectError((error) {
+        print('Connection error: $error');
+      });
+
+      socket.onDisconnect((_) {
+        print('Disconnected from socket server');
+      });
+
+      // Listen for incoming messages
+      socket.on("message_received", (data) {
+        print('Received message: $data');
+        if (data != null && data is Map) {
+          setState(() {
+            chatMessages.add({
+              "sender": "other",
+              "text": data["text"] ?? "",
+            });
+          });
+          _scrollToBottom();
+        }
+      });
+
+      socket.onError((error) {
+        print('Socket error: $error');
+      });
+    } catch (e) {
+      print('Error initializing socket: $e');
+    }
+  }
+
+  void _sendMessage() {
+    if (_messageController.text.trim().isNotEmpty) {
+      final messageText = _messageController.text.trim();
+
+      // Add message to local list
+      setState(() {
+        chatMessages.add({
+          "sender": "me",
+          "text": messageText,
+        });
+      });
+
+      // Emit message to socket server
+      socket.emit("send_message", {
+        "text": messageText,
+        "sender": "user",
+        "timestamp": DateTime.now().millisecondsSinceEpoch,
+      });
+
+      // Clear the input field
+      _messageController.clear();
+
+      // Scroll to bottom to show the new message
+      _scrollToBottom();
+    }
+  }
+
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _scrollController.dispose();
+    focusNode.dispose();
+    socket.disconnect();
+    socket.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return GestureDetector(
-      onTap: () {},
+      onTap: () => FocusScope.of(context).unfocus(),
       child: Stack(
         children: [
           Image.asset(
-            'assets/images/message_background.png',
-            fit: BoxFit.cover,
+            'assets/images/message_background.jpg',
+            fit: BoxFit.fill,
             height: MediaQuery.of(context).size.height,
             width: MediaQuery.of(context).size.width,
           ),
           Scaffold(
             backgroundColor: Colors.transparent,
             appBar: _chatAppBar(theme, context),
-            body: Container(
-              height: MediaQuery.of(context).size.height,
-              width: MediaQuery.of(context).size.width,
-              child: Stack(
-                children: [
-                  ListView(),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: _buildBottomTyping(context, theme),
+            body: Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    itemCount: chatMessages.length,
+                    padding: const EdgeInsets.only(top: 10, bottom: 10),
+                    itemBuilder: (context, index) {
+                      final message = chatMessages[index];
+                      if (message["sender"] == "me") {
+                        return OwnMessageCard(
+                          message: message["text"] ?? "",
+                        );
+                      } else {
+                        return ReplyMessageCard(
+                          message: message["text"] ?? "",
+                        );
+                      }
+                    },
                   ),
-                ],
-              ),
+                ),
+                _buildMessageInput(context, theme),
+              ],
             ),
           ),
         ],
@@ -80,7 +231,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       ),
       centerTitle: false,
       title: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CircleAvatar(
             backgroundImage: NetworkImage(contact.avatarUrl),
@@ -98,7 +248,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 ),
               ),
               Text(
-                "Last seen: 2 hours ago",
+                contact.isOnline ? "Online" : "Last seen: 2 hours ago",
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: Colors.white,
                 ),
@@ -118,69 +268,46 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     );
   }
 
-  Row _buildBottomTyping(BuildContext context, ThemeData theme) {
-    return Row(
-      children: [
-        Container(
-          width: MediaQuery.of(context).size.width - 55,
-          child: Card(
-            margin: const EdgeInsets.only(left: 10, right: 5, bottom: 15),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: TextFormField(
-              textAlignVertical: TextAlignVertical.center,
-              keyboardType: TextInputType.multiline,
-              maxLines: 5,
-              minLines: 1,
-              decoration: InputDecoration(
-                hintText: "Type a message",
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.all(15),
-                suffixIcon: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.camera_alt_outlined),
-                      onPressed: () {},
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.attach_file),
-                      onPressed: () {},
-                    ),
-                  ],
-                ),
-                prefixIcon: IconButton(
-                  icon: const Icon(Icons.emoji_emotions_outlined),
-                  onPressed: () {
-                    setState(() {
-                      _showAttachmentOptions = !_showAttachmentOptions;
-                    });
-                  },
+  Widget _buildMessageInput(BuildContext context, ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: TextField(
+                  controller: _messageController,
+                  focusNode: focusNode,
+                  textAlignVertical: TextAlignVertical.center,
+                  keyboardType: TextInputType.multiline,
+                  maxLines: 5,
+                  minLines: 1,
+                  decoration: const InputDecoration(
+                    hintText: "Type a message",
+                    border: InputBorder.none,
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 15, right: 0),
-          child: CircleAvatar(
+          const SizedBox(width: 6),
+          CircleAvatar(
             radius: 25,
             backgroundColor: theme.colorScheme.primary,
             child: IconButton(
               icon: const Icon(Icons.send, color: Colors.white),
-              onPressed: () {
-                // Handle send button press
-                if (_controller.text.isNotEmpty) {
-                  setState(() {
-                    _controller.clear();
-                  });
-                }
-              },
+              onPressed: sendButton ? _sendMessage : null,
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
